@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -43,6 +44,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.vanespark.vertext.R
 import com.vanespark.vertext.data.model.ThreadCategory
+import com.vanespark.vertext.ui.assistant.AIAssistantBottomSheet
+import com.vanespark.vertext.ui.assistant.AIAssistantViewModel
 
 /**
  * Main conversation list screen
@@ -56,9 +59,11 @@ fun ConversationListScreen(
     onSearchClick: () -> Unit,
     onMenuClick: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ConversationListViewModel = hiltViewModel()
+    viewModel: ConversationListViewModel = hiltViewModel(),
+    aiAssistantViewModel: AIAssistantViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val aiAssistantUiState by aiAssistantViewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
@@ -86,15 +91,35 @@ fun ConversationListScreen(
         },
         floatingActionButton = {
             if (!uiState.isSelectionMode) {
-                FloatingActionButton(
-                    onClick = onNewMessageClick,
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(R.string.new_message)
+                    // AI Assistant FAB
+                    ExtendedFloatingActionButton(
+                        onClick = { aiAssistantViewModel.show() },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "AI Assistant"
+                            )
+                        },
+                        text = { Text("Ask AI") },
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                     )
+
+                    // New Message FAB
+                    FloatingActionButton(
+                        onClick = onNewMessageClick,
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = stringResource(R.string.new_message)
+                        )
+                    }
                 }
             }
         },
@@ -109,6 +134,15 @@ fun ConversationListScreen(
             onPinConversation = { viewModel.pinConversation(it) },
             onCategorySelected = { viewModel.selectCategory(it) },
             modifier = Modifier.padding(paddingValues)
+        )
+
+        // AI Assistant Bottom Sheet
+        AIAssistantBottomSheet(
+            uiState = aiAssistantUiState,
+            onDismiss = { aiAssistantViewModel.dismiss() },
+            onSendMessage = { aiAssistantViewModel.sendMessage(it) },
+            onUpdateInput = { aiAssistantViewModel.updateInputText(it) },
+            onClearHistory = { aiAssistantViewModel.clearHistory() }
         )
     }
 }

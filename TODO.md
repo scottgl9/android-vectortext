@@ -406,16 +406,24 @@
   - Dismissible modal bottom sheet
   - Integrated into ChatThreadScreen menu
 
-### Smart Categories
-- [ ] Implement automatic thread categorization
-  - Category detection logic
-  - Personal, Work, Promotions, etc.
-  - ML-based classification (simple rules for MVP)
+### Smart Categories ✅
+- [x] Implement automatic thread categorization
+  - ThreadCategory enum with 10 categories (Personal, Work, Promotions, Finance, Shopping, Travel, Social, Alerts, Spam, Uncategorized)
+  - ThreadCategorizationService with rule-based classification
+  - Keyword matching and sender pattern detection
+  - Integrated into SmsSyncService (auto-categorization on sync)
 
-- [ ] Add category UI to conversation list
-  - Collapsible category sections
-  - Smooth expand/collapse animations
-  - Category badges
+- [x] Add category UI to conversation list
+  - CategoryFilterChips with horizontal scrollable row
+  - Material You FilterChip components with emoji icons
+  - Reactive filtering with Flow combine operator
+  - Category badges on conversation cards
+
+- [x] Add categorization management to Settings
+  - CategorizationItem with stats display
+  - Manual "Categorize Threads" action button
+  - Progress indicator during categorization
+  - Refresh stats functionality
 
 ### AI Assistant Interface
 - [ ] Create AI assistant floating bubble

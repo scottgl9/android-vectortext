@@ -34,6 +34,40 @@ class BuiltInMcpServer @Inject constructor(
     }
 
     /**
+     * Call a tool directly with arguments
+     * This is a convenience method for internal use (e.g., AI assistant)
+     */
+    suspend fun callTool(toolName: String, arguments: Map<String, Any> = emptyMap()): ToolResult {
+        val tool = tools[toolName]
+            ?: return ToolResult(
+                success = false,
+                error = "Tool not found: $toolName"
+            )
+
+        // Validate required parameters
+        val missingParams = tool.parameters
+            .filter { it.required && !arguments.containsKey(it.name) }
+            .map { it.name }
+
+        if (missingParams.isNotEmpty()) {
+            return ToolResult(
+                success = false,
+                error = "Missing required parameters: ${missingParams.joinToString()}"
+            )
+        }
+
+        return try {
+            tool.execute(arguments)
+        } catch (e: Exception) {
+            Timber.e(e, "Tool execution failed: $toolName")
+            ToolResult(
+                success = false,
+                error = "Tool execution failed: ${e.message}"
+            )
+        }
+    }
+
+    /**
      * Handle incoming MCP JSON-RPC request
      */
     suspend fun handleRequest(requestJson: String): String = withContext(Dispatchers.IO) {

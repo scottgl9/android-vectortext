@@ -1,0 +1,328 @@
+package com.vanespark.vertext.ui.assistant
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.vanespark.vertext.domain.mcp.BuiltInMcpServer
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import timber.log.Timber
+import java.util.UUID
+import javax.inject.Inject
+
+/**
+ * ViewModel for AI assistant
+ * Handles natural language queries and MCP tool integration
+ */
+@HiltViewModel
+class AIAssistantViewModel @Inject constructor(
+    private val mcpServer: BuiltInMcpServer
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(AIAssistantUiState())
+    val uiState: StateFlow<AIAssistantUiState> = _uiState.asStateFlow()
+
+    /**
+     * Show the assistant bottom sheet
+     */
+    fun show() {
+        _uiState.update { it.copy(isVisible = true) }
+    }
+
+    /**
+     * Hide the assistant bottom sheet
+     */
+    fun dismiss() {
+        _uiState.update { it.copy(isVisible = false) }
+    }
+
+    /**
+     * Update input text
+     */
+    fun updateInputText(text: String) {
+        _uiState.update { it.copy(inputText = text) }
+    }
+
+    /**
+     * Process user query
+     */
+    fun sendMessage(query: String) {
+        if (query.isBlank()) return
+
+        val trimmedQuery = query.trim()
+
+        // Add user message
+        val userMessage = AIMessage(
+            id = UUID.randomUUID().toString(),
+            content = trimmedQuery,
+            isUser = true
+        )
+
+        _uiState.update {
+            it.copy(
+                messages = it.messages + userMessage,
+                inputText = "",
+                isProcessing = true,
+                error = null
+            )
+        }
+
+        // Process query and get response
+        viewModelScope.launch {
+            try {
+                val response = processQuery(trimmedQuery)
+
+                val assistantMessage = AIMessage(
+                    id = UUID.randomUUID().toString(),
+                    content = response.content,
+                    isUser = false,
+                    toolUsed = response.toolUsed,
+                    isError = false
+                )
+
+                _uiState.update {
+                    it.copy(
+                        messages = it.messages + assistantMessage,
+                        isProcessing = false
+                    )
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Error processing query")
+
+                val errorMessage = AIMessage(
+                    id = UUID.randomUUID().toString(),
+                    content = "Sorry, I encountered an error: ${e.message}",
+                    isUser = false,
+                    isError = true
+                )
+
+                _uiState.update {
+                    it.copy(
+                        messages = it.messages + errorMessage,
+                        isProcessing = false,
+                        error = e.message
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * Process user query and determine which MCP tool to use
+     */
+    private suspend fun processQuery(query: String): AssistantResponse {
+        val lowerQuery = query.lowercase()
+
+        // Determine which tool to use based on query
+        return when {
+            // Search messages
+            lowerQuery.contains("search") || lowerQuery.contains("find") -> {
+                val searchQuery = extractSearchQuery(query)
+                searchMessages(searchQuery)
+            }
+
+            // List conversations/threads
+            lowerQuery.contains("list") && (lowerQuery.contains("conversation") || lowerQuery.contains("thread")) -> {
+                listThreads()
+            }
+
+            // Get thread summary
+            lowerQuery.contains("summar") -> {
+                // Try to extract thread ID or ask for clarification
+                val summary = "To get a thread summary, please specify which conversation you'd like summarized. You can say 'summarize conversation with [contact name]' or provide a thread ID."
+                AssistantResponse(summary, null)
+            }
+
+            // Recent messages
+            lowerQuery.contains("recent") || lowerQuery.contains("latest") -> {
+                listRecentMessages()
+            }
+
+            // Default: perform search
+            else -> {
+                searchMessages(query)
+            }
+        }
+    }
+
+    /**
+     * Extract search query from user input
+     */
+    private fun extractSearchQuery(query: String): String {
+        // Remove common command words
+        return query
+            .replace(Regex("(search|find|look for|show me)\\s+", RegexOption.IGNORE_CASE), "")
+            .replace(Regex("(messages|texts|conversations)\\s+(about|with|from)\\s+", RegexOption.IGNORE_CASE), "")
+            .trim()
+    }
+
+    /**
+     * Search messages using MCP search_messages tool
+     */
+    private suspend fun searchMessages(query: String): AssistantResponse {
+        val params = mapOf(
+            "query" to query,
+            "max_results" to 10,
+            "similarity_threshold" to 0.15
+        )
+
+        val result = mcpServer.callTool("search_messages", params)
+
+        return if (result.success) {
+            val data = result.data as? Map<*, *>
+            val results = data?.get("results") as? List<*> ?: emptyList<Any>()
+
+            if (results.isEmpty()) {
+                AssistantResponse(
+                    "I couldn't find any messages matching \"$query\". Try a different search term.",
+                    "search_messages"
+                )
+            } else {
+                val formattedResults = formatSearchResults(results, query)
+                AssistantResponse(formattedResults, "search_messages")
+            }
+        } else {
+            AssistantResponse(
+                "Search failed: ${result.error ?: "Unknown error"}",
+                "search_messages"
+            )
+        }
+    }
+
+    /**
+     * List threads using MCP list_threads tool
+     */
+    private suspend fun listThreads(): AssistantResponse {
+        val params = mapOf("limit" to 20)
+        val result = mcpServer.callTool("list_threads", params)
+
+        return if (result.success) {
+            val data = result.data as? Map<*, *>
+            val threads = data?.get("threads") as? List<*> ?: emptyList<Any>()
+
+            val formatted = formatThreadList(threads)
+            AssistantResponse(formatted, "list_threads")
+        } else {
+            AssistantResponse(
+                "Failed to list threads: ${result.error ?: "Unknown error"}",
+                "list_threads"
+            )
+        }
+    }
+
+    /**
+     * List recent messages using MCP list_messages tool
+     */
+    private suspend fun listRecentMessages(): AssistantResponse {
+        val params = mapOf("limit" to 20)
+        val result = mcpServer.callTool("list_messages", params)
+
+        return if (result.success) {
+            val data = result.data as? Map<*, *>
+            val messages = data?.get("messages") as? List<*> ?: emptyList<Any>()
+
+            val formatted = formatMessageList(messages)
+            AssistantResponse(formatted, "list_messages")
+        } else {
+            AssistantResponse(
+                "Failed to list messages: ${result.error ?: "Unknown error"}",
+                "list_messages"
+            )
+        }
+    }
+
+    /**
+     * Format search results for display
+     */
+    private fun formatSearchResults(results: List<*>, query: String): String {
+        val builder = StringBuilder()
+        builder.append("Found ${results.size} messages matching \"$query\":\n\n")
+
+        results.take(5).forEachIndexed { index, result ->
+            val resultMap = result as? Map<*, *> ?: return@forEachIndexed
+            val body = resultMap["body"] as? String ?: ""
+            val sender = resultMap["sender"] as? String ?: "Unknown"
+            val similarity = resultMap["similarity"] as? Number ?: 0.0
+
+            builder.append("${index + 1}. From $sender (${String.format("%.0f", similarity.toDouble() * 100)}% match)\n")
+            builder.append("   \"${body.take(100)}${if (body.length > 100) "..." else ""}\"\n\n")
+        }
+
+        if (results.size > 5) {
+            builder.append("... and ${results.size - 5} more results")
+        }
+
+        return builder.toString()
+    }
+
+    /**
+     * Format thread list for display
+     */
+    private fun formatThreadList(threads: List<*>): String {
+        val builder = StringBuilder()
+        builder.append("Here are your conversations:\n\n")
+
+        threads.take(10).forEachIndexed { index, thread ->
+            val threadMap = thread as? Map<*, *> ?: return@forEachIndexed
+            val recipientName = threadMap["recipient_name"] as? String
+            val recipient = threadMap["recipient"] as? String ?: "Unknown"
+            val messageCount = threadMap["message_count"] as? Number ?: 0
+            val unreadCount = threadMap["unread_count"] as? Number ?: 0
+
+            val displayName = recipientName ?: recipient
+            val unreadText = if (unreadCount.toInt() > 0) " (${unreadCount} unread)" else ""
+
+            builder.append("${index + 1}. $displayName$unreadText\n")
+            builder.append("   $messageCount messages\n\n")
+        }
+
+        if (threads.size > 10) {
+            builder.append("... and ${threads.size - 10} more conversations")
+        }
+
+        return builder.toString()
+    }
+
+    /**
+     * Format message list for display
+     */
+    private fun formatMessageList(messages: List<*>): String {
+        val builder = StringBuilder()
+        builder.append("Here are your recent messages:\n\n")
+
+        messages.take(10).forEachIndexed { index, message ->
+            val messageMap = message as? Map<*, *> ?: return@forEachIndexed
+            val body = messageMap["body"] as? String ?: ""
+            val sender = messageMap["address"] as? String ?: "Unknown"
+            val type = messageMap["type"] as? String ?: "received"
+
+            val prefix = if (type == "sent") "To" else "From"
+            builder.append("${index + 1}. $prefix $sender\n")
+            builder.append("   \"${body.take(80)}${if (body.length > 80) "..." else ""}\"\n\n")
+        }
+
+        if (messages.size > 10) {
+            builder.append("... and ${messages.size - 10} more messages")
+        }
+
+        return builder.toString()
+    }
+
+    /**
+     * Clear conversation history
+     */
+    fun clearHistory() {
+        _uiState.update { it.copy(messages = emptyList()) }
+    }
+
+    /**
+     * Assistant response data
+     */
+    private data class AssistantResponse(
+        val content: String,
+        val toolUsed: String?
+    )
+}
