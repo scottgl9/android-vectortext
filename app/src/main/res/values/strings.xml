@@ -25,6 +25,7 @@
 
     <!-- Actions -->
     <string name="archive">Archive</string>
+    <string name="unarchive">Unarchive</string>
     <string name="delete">Delete</string>
     <string name="pin">Pin</string>
     <string name="unpin">Unpin</string>

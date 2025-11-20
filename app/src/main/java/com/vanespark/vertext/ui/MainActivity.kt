@@ -20,6 +20,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.vanespark.vertext.data.repository.ThreadRepository
 import com.vanespark.vertext.domain.service.PermissionManager
 import com.vanespark.vertext.domain.service.SmsSyncService
+import com.vanespark.vertext.ui.archived.ArchivedConversationsScreen
 import com.vanespark.vertext.ui.chat.ChatThreadScreen
 import com.vanespark.vertext.ui.chat.ChatThreadViewModel
 import com.vanespark.vertext.ui.components.AppNavigationDrawer
@@ -72,6 +73,7 @@ class MainActivity : ComponentActivity() {
                     var currentThreadId by remember { mutableStateOf<Long?>(null) }
                     var showNewChat by remember { mutableStateOf(false) }
                     var showSearch by remember { mutableStateOf(false) }
+                    var showArchived by remember { mutableStateOf(false) }
                     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
                     // Check if initial sync is complete
@@ -114,10 +116,14 @@ class MainActivity : ComponentActivity() {
                                     currentThreadId = null
                                     showNewChat = false
                                     showSearch = false
+                                    showArchived = false
                                 },
                                 onNavigateToArchived = {
                                     Timber.d("Navigate to archived")
-                                    // TODO: Implement archived conversations
+                                    currentThreadId = null
+                                    showNewChat = false
+                                    showSearch = false
+                                    showArchived = true
                                 },
                                 onNavigateToBlocked = {
                                     Timber.d("Navigate to blocked")
@@ -133,6 +139,18 @@ class MainActivity : ComponentActivity() {
                                 }
                             ) {
                                 when {
+                                    showArchived -> {
+                                        // Archived conversations screen
+                                        ArchivedConversationsScreen(
+                                            onNavigateBack = {
+                                                showArchived = false
+                                            },
+                                            onConversationClick = { threadId ->
+                                                showArchived = false
+                                                currentThreadId = threadId
+                                            }
+                                        )
+                                    }
                                     showSearch -> {
                                         // Search screen
                                         SearchScreen(

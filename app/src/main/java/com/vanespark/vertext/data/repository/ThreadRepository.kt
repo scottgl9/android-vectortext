@@ -33,6 +33,10 @@ class ThreadRepository @Inject constructor(
         threadDao.delete(thread)
     }
 
+    suspend fun deleteThread(threadId: Long) {
+        threadDao.deleteById(threadId)
+    }
+
     suspend fun deleteThreadById(threadId: Long) {
         threadDao.deleteById(threadId)
     }
