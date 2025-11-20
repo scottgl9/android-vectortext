@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "e0910743157071e58d69fbcfd5fa0d2e",
+    "identityHash": "f1f5d24565e24d107897be2fbbf39365",
     "entities": [
       {
         "tableName": "messages",
@@ -147,7 +147,7 @@
       },
       {
         "tableName": "threads",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `recipient` TEXT NOT NULL, `recipient_name` TEXT, `last_message` TEXT, `last_message_date` INTEGER NOT NULL, `unread_count` INTEGER NOT NULL, `is_pinned` INTEGER NOT NULL, `is_archived` INTEGER NOT NULL, `is_muted` INTEGER NOT NULL, `category` TEXT, `message_count` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `recipient` TEXT NOT NULL, `recipient_name` TEXT, `last_message` TEXT, `last_message_date` INTEGER NOT NULL, `unread_count` INTEGER NOT NULL, `is_pinned` INTEGER NOT NULL, `is_archived` INTEGER NOT NULL, `is_muted` INTEGER NOT NULL, `category` TEXT, `message_count` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -217,7 +217,7 @@
           }
         ],
         "primaryKey": {
-          "autoGenerate": true,
+          "autoGenerate": false,
           "columnNames": [
             "id"
           ]
@@ -341,7 +341,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e0910743157071e58d69fbcfd5fa0d2e')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f1f5d24565e24d107897be2fbbf39365')"
     ]
   }
 }

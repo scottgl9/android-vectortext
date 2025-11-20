@@ -184,12 +184,18 @@ class ThreadRepository @Inject constructor(
             return existing
         }
 
+        // Generate a unique thread ID using timestamp + recipient hashcode
+        // This avoids collisions with system SMS thread IDs
+        val now = System.currentTimeMillis()
+        val generatedId = now + recipient.hashCode().toLong()
+
         val newThread = Thread(
+            id = generatedId,
             recipient = recipient,
             recipientName = recipientName,
-            lastMessageDate = System.currentTimeMillis()
+            lastMessageDate = now
         )
-        val threadId = insertThread(newThread)
-        return newThread.copy(id = threadId)
+        insertThread(newThread)
+        return newThread
     }
 }

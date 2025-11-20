@@ -18,8 +18,8 @@ import androidx.room.PrimaryKey
     ]
 )
 data class Thread(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
+    @PrimaryKey(autoGenerate = false)
+    val id: Long,
 
     /** Phone number or address of the conversation recipient */
     val recipient: String,
