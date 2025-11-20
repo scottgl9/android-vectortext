@@ -1180,3 +1180,95 @@ This document tracks completed tasks, implementation decisions, and challenges e
 
 *Insights Dashboard complete - Phase 4 AI Features fully implemented*
 
+
+### [2025-11-20 23:15] - Encrypted Backup & Restore System
+- **Task**: Implemented comprehensive encrypted backup and restore system
+- **Implemented**:
+  - **BackupService** - Encrypted database backup service:
+    - EncryptedFile with AES256_GCM_HKDF_4KB encryption
+    - MasterKey management using Android Keystore
+    - createBackup() with Flow-based progress tracking (0-100%)
+    - restoreBackup() with database integrity verification
+    - getBackups() for listing available backups
+    - deleteBackup() for secure file deletion
+    - Timestamp-based backup filenames (vertext_backup_YYYYMMDD_HHMMSS.vbak)
+    - Automatic backup directory management
+    - Human-readable file size formatting
+
+  - **BackupViewModel** - State management:
+    - BackupUiState with loading/progress/error/success states
+    - BackupProgressUi and RestoreProgressUi for real-time tracking
+    - createBackup(), restoreBackup(), deleteBackup() actions
+    - Error and success message management
+    - Refresh functionality for backup list
+
+  - **Settings UI Integration**:
+    - BackupManagementItem comprehensive card (260+ lines)
+    - Material You design with surfaceVariant container
+    - Header with Backup icon and refresh button
+    - Progress indicators (LinearProgressIndicator with percentage)
+    - Error/success message cards (dismissible)
+    - Create backup button
+    - Backup list with timestamps and file sizes
+    - Per-backup Restore and Delete buttons
+    - Confirmation dialogs for restore and delete
+    - Proper enabled/disabled states during operations
+    - Empty state ("No backups found")
+
+- **Files Created**:
+  - `domain/service/BackupService.kt` (314 lines)
+  - `ui/settings/BackupViewModel.kt` (201 lines)
+
+- **Files Modified**:
+  - `app/build.gradle.kts` - Added security-crypto library
+  - `ui/settings/SettingsScreen.kt` - Added BackupManagementItem integration
+
+- **Security Features**:
+  - AES256-GCM encryption for all backup files
+  - MasterKey stored securely in Android Keystore
+  - EncryptedFile.FileEncryptionScheme.AES256_GCM_HKDF_4KB
+  - Database integrity verification (PRAGMA integrity_check)
+  - Secure file operations with proper error handling
+  - Database connection management during backup/restore
+
+- **UX Features**:
+  - Real-time progress tracking with detailed status messages
+  - Progress bar showing percentage (10% → 95%)
+  - Confirmation dialogs for destructive actions
+  - Error and success notifications
+  - Disabled UI during operations
+  - Formatted timestamps (MMM dd, yyyy 'at' hh:mm a)
+  - File size display (B, KB, MB)
+  - Refresh button for backup list
+
+- **Data Models**:
+  - BackupMetadata (filename, path, timestamp, size, messageCount)
+  - BackupProgress (InProgress, Success, Error)
+  - RestoreProgress (InProgress, Success, Error)
+  - BackupUiState, BackupProgressUi, RestoreProgressUi
+
+- **Architecture**:
+  - Clean separation: Service → ViewModel → UI
+  - Flow-based progress tracking for reactive UI updates
+  - Result<T> for error handling
+  - Hilt dependency injection (@Singleton, @HiltViewModel)
+  - Coroutine-based async operations (Dispatchers.IO)
+  - StateFlow for UI state management
+
+- **Dependencies Added**:
+  - androidx.security:security-crypto:1.1.0-alpha06
+
+- **Build Status**: ✅ Build successful (minor Divider deprecation warnings)
+- **Testing**: ✅ Installed on Samsung Galaxy Z Fold6
+- **Commit**: eb5618b
+
+- **Phase 5 Progress**:
+  - ✅ Encrypted Backup (completed)
+  - ⏳ Automations (Rules Engine) - pending
+  - ⏳ AI-Enhanced Contact Profiles - pending
+  - ⏳ Final Polish Pass - pending
+
+---
+
+*Encrypted Backup system complete - Phase 5 in progress*
+

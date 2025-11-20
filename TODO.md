@@ -465,16 +465,19 @@
 
 ## Phase 5 — Advanced Features + Polish ✨
 
-### Encrypted Backup
-- [ ] Implement local backup system
-  - Export database to encrypted file
-  - Progress animation during backup
-  - Backup file management
+### Encrypted Backup ✅
+- [x] Implement local backup system
+  - Export database to encrypted file (AES256-GCM)
+  - Progress animation during backup (Flow-based with percentage)
+  - Backup file management (list, delete)
+  - MasterKey with Android Keystore
+  - Timestamp-based backup filenames
 
-- [ ] Implement restore functionality
-  - Import from backup file
-  - Decrypt and verify
-  - Progress indicators
+- [x] Implement restore functionality
+  - Import from backup file with decryption
+  - Decrypt and verify (integrity check)
+  - Progress indicators (0-100% with status messages)
+  - Confirmation dialogs
 
 ### Automations (Rules Engine)
 - [ ] Create automation system
