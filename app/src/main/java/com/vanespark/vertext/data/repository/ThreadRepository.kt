@@ -145,6 +145,10 @@ class ThreadRepository @Inject constructor(
         threadDao.updateCategory(threadId, category)
     }
 
+    suspend fun updateThreadCategory(threadId: Long, category: String) {
+        threadDao.updateCategory(threadId, category)
+    }
+
     // === Category Operations ===
 
     fun getThreadsByCategory(category: String): Flow<List<Thread>> {

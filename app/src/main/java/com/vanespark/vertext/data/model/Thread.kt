@@ -52,22 +52,18 @@ data class Thread(
     @ColumnInfo(name = "is_muted")
     val isMuted: Boolean = false,
 
-    /** AI-generated category (Personal, Work, Promotions, etc.) */
+    /** AI-generated category (stored as String, use ThreadCategory enum) */
     val category: String? = null,
 
     /** Total number of messages in thread */
     @ColumnInfo(name = "message_count")
     val messageCount: Int = 0
 ) {
-    companion object {
-        const val CATEGORY_PERSONAL = "Personal"
-        const val CATEGORY_WORK = "Work"
-        const val CATEGORY_PROMOTIONS = "Promotions"
-        const val CATEGORY_TRANSACTIONS = "Transactions"
-        const val CATEGORY_OTHER = "Other"
-    }
-
     /** Helper to check if thread has unread messages */
     val hasUnread: Boolean
         get() = unreadCount > 0
+
+    /** Get category as enum */
+    val categoryEnum: ThreadCategory
+        get() = ThreadCategory.fromString(category)
 }

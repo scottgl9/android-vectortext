@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PushPin
@@ -23,6 +24,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,6 +34,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.vanespark.vertext.data.model.ThreadCategory
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -136,6 +139,14 @@ fun ConversationCard(
                                 modifier = Modifier.size(16.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                        }
+
+                        // Category badge
+                        conversation.category?.let { categoryStr ->
+                            val category = ThreadCategory.fromString(categoryStr)
+                            if (category != ThreadCategory.UNCATEGORIZED) {
+                                CategoryBadge(category = category)
+                            }
                         }
                     }
 
@@ -280,5 +291,37 @@ private fun formatTimestamp(timestamp: Long): String {
         else -> {
             SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(timestamp))
         }
+    }
+}
+
+/**
+ * Category badge showing thread category with icon
+ */
+@Composable
+private fun CategoryBadge(
+    category: ThreadCategory,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(4.dp),
+        color = when (category) {
+            ThreadCategory.WORK -> MaterialTheme.colorScheme.tertiaryContainer
+            ThreadCategory.PROMOTIONS -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f)
+            ThreadCategory.FINANCE -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f)
+            ThreadCategory.SHOPPING -> MaterialTheme.colorScheme.secondaryContainer
+            ThreadCategory.TRAVEL -> MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.8f)
+            ThreadCategory.ALERTS -> MaterialTheme.colorScheme.errorContainer
+            ThreadCategory.SPAM -> MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
+            ThreadCategory.SOCIAL -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+            else -> MaterialTheme.colorScheme.surfaceVariant
+        },
+        tonalElevation = 0.dp
+    ) {
+        Text(
+            text = category.icon,
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+        )
     }
 }
