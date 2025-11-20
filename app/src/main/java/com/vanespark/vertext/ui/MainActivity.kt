@@ -29,6 +29,7 @@ import com.vanespark.vertext.ui.compose.NewChatScreen
 import com.vanespark.vertext.ui.conversations.ConversationListScreen
 import com.vanespark.vertext.ui.insights.InsightsScreen
 import com.vanespark.vertext.ui.permissions.PermissionsScreen
+import com.vanespark.vertext.ui.rules.RulesScreen
 import com.vanespark.vertext.ui.search.SearchScreen
 import com.vanespark.vertext.ui.settings.SettingsScreen
 import com.vanespark.vertext.ui.sync.SyncScreen
@@ -79,6 +80,7 @@ class MainActivity : ComponentActivity() {
                     var showArchived by remember { mutableStateOf(false) }
                     var showBlocked by remember { mutableStateOf(false) }
                     var showInsights by remember { mutableStateOf(false) }
+                    var showRules by remember { mutableStateOf(false) }
                     var showSettings by remember { mutableStateOf(false) }
                     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
@@ -173,11 +175,23 @@ class MainActivity : ComponentActivity() {
                                 }
                             ) {
                                 when {
+                                    showRules -> {
+                                        // Rules screen
+                                        RulesScreen(
+                                            onNavigateBack = {
+                                                showRules = false
+                                            }
+                                        )
+                                    }
                                     showSettings -> {
                                         // Settings screen
                                         SettingsScreen(
                                             onNavigateBack = {
                                                 showSettings = false
+                                            },
+                                            onNavigateToRules = {
+                                                showSettings = false
+                                                showRules = true
                                             }
                                         )
                                     }

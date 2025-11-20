@@ -8,6 +8,7 @@ import android.telephony.SmsMessage
 import com.vanespark.vertext.data.model.Message
 import com.vanespark.vertext.data.repository.MessageRepository
 import com.vanespark.vertext.data.repository.ThreadRepository
+import com.vanespark.vertext.domain.service.RuleEngine
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +29,9 @@ class SmsReceiver : BroadcastReceiver() {
 
     @Inject
     lateinit var threadRepository: ThreadRepository
+
+    @Inject
+    lateinit var ruleEngine: RuleEngine
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -82,6 +86,15 @@ class SmsReceiver : BroadcastReceiver() {
                 // Insert message into database
                 val messageId = messageRepository.insertMessage(message)
                 Timber.d("Inserted received SMS with ID: $messageId")
+
+                // Process message through rule engine
+                try {
+                    val savedMessage = message.copy(id = messageId)
+                    ruleEngine.processMessage(savedMessage)
+                    Timber.d("Processed message $messageId through rule engine")
+                } catch (e: Exception) {
+                    Timber.e(e, "Error processing message through rule engine")
+                }
 
                 // Update thread metadata
                 threadRepository.updateLastMessage(

@@ -25,6 +25,7 @@ import com.vanespark.vertext.R
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
+    onNavigateToRules: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
     backupViewModel: BackupViewModel = hiltViewModel()
 ) {
@@ -124,6 +125,14 @@ fun SettingsScreen(
                     subtitle = "Display contact names instead of phone numbers",
                     checked = uiState.showContactNames,
                     onCheckedChange = { viewModel.updateShowContactNames(it) }
+                )
+            }
+            item {
+                SettingsActionItem(
+                    icon = Icons.Default.AutoAwesome,
+                    title = "Automation Rules",
+                    subtitle = "Manage automation rules for messages",
+                    onClick = onNavigateToRules
                 )
             }
 
