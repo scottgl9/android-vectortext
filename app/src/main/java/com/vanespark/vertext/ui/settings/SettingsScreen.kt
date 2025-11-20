@@ -25,9 +25,11 @@ import com.vanespark.vertext.R
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: SettingsViewModel = hiltViewModel()
+    viewModel: SettingsViewModel = hiltViewModel(),
+    backupViewModel: BackupViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val backupUiState by backupViewModel.uiState.collectAsState()
 
     // Handle back button press
     BackHandler(onBack = onNavigateBack)
@@ -154,19 +156,14 @@ fun SettingsScreen(
                 SettingsSectionHeader(text = "Storage & Backup")
             }
             item {
-                SettingsActionItem(
-                    icon = Icons.Default.Backup,
-                    title = "Backup messages",
-                    subtitle = "Export messages to local storage",
-                    onClick = { viewModel.backupMessages() }
-                )
-            }
-            item {
-                SettingsActionItem(
-                    icon = Icons.Default.RestorePage,
-                    title = "Restore messages",
-                    subtitle = "Import messages from backup",
-                    onClick = { viewModel.restoreMessages() }
+                BackupManagementItem(
+                    backupUiState = backupUiState,
+                    onCreateBackup = { backupViewModel.createBackup() },
+                    onRestoreBackup = { backupPath -> backupViewModel.restoreBackup(backupPath) },
+                    onDeleteBackup = { backupPath -> backupViewModel.deleteBackup(backupPath) },
+                    onRefresh = { backupViewModel.loadBackups() },
+                    onDismissError = { backupViewModel.clearError() },
+                    onDismissSuccess = { backupViewModel.clearSuccessMessage() }
                 )
             }
             item {
@@ -651,6 +648,361 @@ private fun CategorizationItem(
                 Text(if (isCategorizing) "Categorizing..." else "Categorize Threads")
             }
         }
+    }
+}
+
+/**
+ * Backup management card with create, restore, and delete functionality
+ */
+@Composable
+private fun BackupManagementItem(
+    backupUiState: BackupUiState,
+    onCreateBackup: () -> Unit,
+    onRestoreBackup: (String) -> Unit,
+    onDeleteBackup: (String) -> Unit,
+    onRefresh: () -> Unit,
+    onDismissError: () -> Unit,
+    onDismissSuccess: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showRestoreConfirmation by remember { mutableStateOf<String?>(null) }
+    var showDeleteConfirmation by remember { mutableStateOf<String?>(null) }
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Header with refresh button
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Backup,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "Encrypted Backups",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                IconButton(onClick = onRefresh) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "Refresh",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            Divider()
+
+            // Backup progress
+            if (backupUiState.backupProgress != null) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = backupUiState.backupProgress.message,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    LinearProgressIndicator(
+                        progress = { backupUiState.backupProgress.progress / 100f },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text(
+                        text = "${backupUiState.backupProgress.progress}%",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Divider()
+            }
+
+            // Restore progress
+            if (backupUiState.restoreProgress != null) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = backupUiState.restoreProgress.message,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    LinearProgressIndicator(
+                        progress = { backupUiState.restoreProgress.progress / 100f },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text(
+                        text = "${backupUiState.restoreProgress.progress}%",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Divider()
+            }
+
+            // Error message
+            if (backupUiState.error != null) {
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = backupUiState.error,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton(onClick = onDismissError) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Dismiss",
+                                tint = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Success message
+            if (backupUiState.successMessage != null) {
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = backupUiState.successMessage,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton(onClick = onDismissSuccess) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Dismiss",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Create backup button
+            Button(
+                onClick = onCreateBackup,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = backupUiState.backupProgress == null && backupUiState.restoreProgress == null
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Create New Backup")
+            }
+
+            // Backup list
+            if (backupUiState.backups.isNotEmpty()) {
+                Divider()
+                Text(
+                    text = "Available Backups (${backupUiState.backups.size})",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
+                )
+
+                backupUiState.backups.forEach { backup ->
+                    BackupListItem(
+                        backup = backup,
+                        onRestore = { showRestoreConfirmation = backup.path },
+                        onDelete = { showDeleteConfirmation = backup.path },
+                        enabled = backupUiState.backupProgress == null && backupUiState.restoreProgress == null
+                    )
+                }
+            } else if (!backupUiState.isLoading) {
+                Text(
+                    text = "No backups found",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+        }
+    }
+
+    // Restore confirmation dialog
+    if (showRestoreConfirmation != null) {
+        AlertDialog(
+            onDismissRequest = { showRestoreConfirmation = null },
+            title = { Text("Restore Backup?") },
+            text = { Text("This will replace all current messages with the backup. The app will need to restart after restore completes.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onRestoreBackup(showRestoreConfirmation!!)
+                        showRestoreConfirmation = null
+                    }
+                ) {
+                    Text("Restore")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRestoreConfirmation = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Delete confirmation dialog
+    if (showDeleteConfirmation != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = null },
+            title = { Text("Delete Backup?") },
+            text = { Text("This action cannot be undone.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDeleteBackup(showDeleteConfirmation!!)
+                        showDeleteConfirmation = null
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmation = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+}
+
+/**
+ * Individual backup list item
+ */
+@Composable
+private fun BackupListItem(
+    backup: com.vanespark.vertext.domain.service.BackupMetadata,
+    onRestore: () -> Unit,
+    onDelete: () -> Unit,
+    enabled: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = java.text.SimpleDateFormat("MMM dd, yyyy 'at' hh:mm a", java.util.Locale.US)
+                            .format(java.util.Date(backup.timestamp)),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = formatBackupSize(backup.size),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onRestore,
+                    modifier = Modifier.weight(1f),
+                    enabled = enabled
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.RestorePage,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Restore")
+                }
+                OutlinedButton(
+                    onClick = onDelete,
+                    modifier = Modifier.weight(1f),
+                    enabled = enabled,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Delete")
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Format backup file size
+ */
+private fun formatBackupSize(bytes: Long): String {
+    return when {
+        bytes < 1024 -> "$bytes B"
+        bytes < 1024 * 1024 -> String.format("%.2f KB", bytes / 1024.0)
+        else -> String.format("%.2f MB", bytes / (1024.0 * 1024.0))
     }
 }
 
