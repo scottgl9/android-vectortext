@@ -87,6 +87,16 @@
             </intent-filter>
         </receiver>
 
+        <!-- SMS Status Receiver (for sent/delivery status) -->
+        <receiver
+            android:name=".data.receiver.SmsStatusReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.vanespark.vectortext.SMS_SENT" />
+                <action android:name="com.vanespark.vectortext.SMS_DELIVERED" />
+            </intent-filter>
+        </receiver>
+
         <!-- Default SMS/MMS app service (required for default messaging app) -->
         <service
             android:name=".data.service.HeadlessSmsSendService"
