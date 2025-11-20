@@ -388,7 +388,7 @@
 
 ---
 
-## Phase 4 — AI Features + Delightful Interactions 🤖
+## Phase 4 — AI Features + Delightful Interactions 🤖 [COMPLETED] ✅
 
 ### Thread Summaries ✅
 - [x] Implement thread summarization
@@ -445,17 +445,21 @@
   - Formatted response generation
   - Conversation history management
 
-### Insights Dashboard
-- [ ] Design insights screen
-  - Message statistics
-  - Top contacts
-  - Activity heatmap
-  - Data visualizations
+### Insights Dashboard ✅
+- [x] Design insights screen
+  - Message statistics (total, sent, received)
+  - Top contacts with message counts
+  - Activity by day of week bar chart
+  - Recent 7-day activity visualization
+  - Data visualizations with Material You design
 
-- [ ] Implement data aggregation
-  - Message count over time
-  - Response time analysis
-  - Conversation metrics
+- [x] Implement data aggregation
+  - InsightsService for comprehensive analytics
+  - Message count over time (daily breakdown)
+  - Response time analysis (average within 24h)
+  - Conversation metrics (threads, unread counts)
+  - Activity by day/hour analysis
+  - Top contacts ranking
 
 ---
 

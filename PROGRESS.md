@@ -1093,3 +1093,90 @@ This document tracks completed tasks, implementation decisions, and challenges e
 
 *Thread summarization complete - Phase 4 in progress*
 
+
+### [2025-11-20 22:35] - Insights Dashboard Implementation
+- **Task**: Implemented comprehensive messaging analytics dashboard with Material You design
+- **Implemented**:
+  - **InsightsService** - Data aggregation service:
+    - Total/sent/received message counts
+    - Top contacts ranking by message volume (top 10)
+    - Activity by day of week with bar chart data
+    - Activity by hour (0-23)
+    - Recent activity (last 7 days) with daily breakdown
+    - Response time analysis (average within 24h window)
+    - Message length statistics (average characters)
+    - Thread and unread conversation counts
+    - All calculations use efficient groupBy and aggregation
+
+  - **InsightsViewModel** - State management:
+    - Loading/error/success states with InsightsUiState
+    - Loads insights on initialization
+    - Refresh capability for real-time updates
+    - Proper error handling with Result<T>
+    - StateFlow for reactive UI updates
+
+  - **InsightsScreen** - Beautiful Material You UI:
+    - **Overview Cards**: Total, Sent, Received messages with color-coded containers
+    - **Top Contacts**: List showing message counts with unread badges
+    - **Day Activity Chart**: Bar chart showing activity by day of week (Sun-Sat)
+    - **Recent Activity**: 7-day timeline with bar visualization
+    - **Additional Stats**: Conversations, response time, message length
+    - Loading state with CircularProgressIndicator
+    - Error state with retry button
+    - Refresh button in TopAppBar
+    - All components use Material 3 theming
+
+  - **Navigation Integration**:
+    - Added Insights item to NavigationDrawer (between Blocked and Settings)
+    - Full navigation support in MainActivity
+    - Proper back navigation with showInsights state
+    - State management across all navigation handlers
+
+- **Files Created**:
+  - `domain/service/InsightsService.kt` (210 lines)
+  - `ui/insights/InsightsViewModel.kt` (77 lines)
+  - `ui/insights/InsightsScreen.kt` (566 lines)
+
+- **Files Modified**:
+  - `ui/components/NavigationDrawer.kt` - Added onNavigateToInsights parameter and Insights menu item
+  - `ui/MainActivity.kt` - Added showInsights state and navigation handlers
+  - `TODO.md` - Marked insights dashboard complete
+
+- **Design Features**:
+  - Material You theming with dynamic colors
+  - Custom bar charts using Compose Box with relative heights
+  - Color-coded stat cards (primary/secondary/tertiary containers)
+  - Icons for all metrics (Message, Send, Inbox, Forum, Schedule, etc.)
+  - Proper spacing and padding throughout
+  - Horizontal scrolling for day labels
+  - Date range labels for recent activity
+
+- **Data Visualization**:
+  - Day-of-week bar chart with normalized heights
+  - 7-day activity timeline with complete date range
+  - Visual indicators for message counts
+  - Relative scaling for better comparison
+  - Minimum bar height for visibility
+
+- **Architecture**:
+  - Clean separation: Service → ViewModel → UI
+  - Domain models (MessagingInsights, ContactStats, DailyActivity)
+  - Result<T> for error handling
+  - Hilt dependency injection
+  - Coroutine-based async operations
+  - Repository layer integration
+
+- **Build Status**: ✅ Build successful (minor deprecation warnings for Icons)
+- **Testing**: ✅ Installed and tested on Samsung Galaxy Z Fold6
+- **Commit**: 8c0b78f
+
+- **Completed Phase 4 Tasks**:
+  - ✅ Smart categories for threads (completed in previous session)
+  - ✅ Category filtering UI (completed in previous session)
+  - ✅ AI Assistant with natural language queries (completed in previous session)
+  - ✅ Insights dashboard with comprehensive analytics
+
+---
+
+*Insights Dashboard complete - Phase 4 AI Features fully implemented*
+
