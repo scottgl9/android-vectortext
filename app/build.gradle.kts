@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.vanespark.vectortext"
+    namespace = "com.vanespark.vertext"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.vanespark.vectortext"
+        applicationId = "com.vanespark.vertext"
         minSdk = 28
         targetSdk = 35
         versionCode = 1

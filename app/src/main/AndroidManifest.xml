@@ -92,8 +92,8 @@
             android:name=".data.receiver.SmsStatusReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.vanespark.vectortext.SMS_SENT" />
-                <action android:name="com.vanespark.vectortext.SMS_DELIVERED" />
+                <action android:name="com.vanespark.vertext.SMS_SENT" />
+                <action android:name="com.vanespark.vertext.SMS_DELIVERED" />
             </intent-filter>
         </receiver>
 
