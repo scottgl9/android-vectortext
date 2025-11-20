@@ -97,6 +97,18 @@ interface MessageDao {
     @Query("UPDATE messages SET embedding = :embedding, embedding_version = :version, last_indexed = :timestamp WHERE id = :messageId")
     suspend fun updateEmbedding(messageId: Long, embedding: String, version: Int, timestamp: Long)
 
+    /**
+     * Get all messages that have embeddings (for semantic search)
+     */
+    @Query("SELECT * FROM messages WHERE embedding IS NOT NULL AND embedding != '' ORDER BY date DESC")
+    suspend fun getMessagesWithEmbeddings(): List<Message>
+
+    /**
+     * Get messages with embeddings in paginated batches
+     */
+    @Query("SELECT * FROM messages WHERE embedding IS NOT NULL AND embedding != '' ORDER BY date DESC LIMIT :limit OFFSET :offset")
+    suspend fun getMessagesWithEmbeddingsPaged(limit: Int, offset: Int): List<Message>
+
     // === Search Operations ===
 
     @Query("""
