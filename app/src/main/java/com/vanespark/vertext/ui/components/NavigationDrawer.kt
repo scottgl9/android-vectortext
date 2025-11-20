@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Message
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DrawerState
@@ -37,6 +38,7 @@ fun AppNavigationDrawer(
     onNavigateToConversations: () -> Unit,
     onNavigateToArchived: () -> Unit,
     onNavigateToBlocked: () -> Unit,
+    onNavigateToInsights: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToAbout: () -> Unit,
     content: @Composable () -> Unit
@@ -95,6 +97,19 @@ fun AppNavigationDrawer(
                         }
                     },
                     icon = { Icon(Icons.Default.Block, contentDescription = null) },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
+
+                NavigationDrawerItem(
+                    label = { Text("Insights") },
+                    selected = currentRoute == "insights",
+                    onClick = {
+                        scope.launch {
+                            drawerState.close()
+                            onNavigateToInsights()
+                        }
+                    },
+                    icon = { Icon(Icons.Default.Insights, contentDescription = null) },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
 

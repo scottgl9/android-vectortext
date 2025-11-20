@@ -425,22 +425,25 @@
   - Progress indicator during categorization
   - Refresh stats functionality
 
-### AI Assistant Interface
-- [ ] Create AI assistant floating bubble
-  - Material 3 extended FAB pattern
-  - Follows scroll behavior
-  - Smooth spring animation
+### AI Assistant Interface ✅
+- [x] Create AI assistant floating bubble
+  - ExtendedFloatingActionButton with "Ask AI" text
+  - Positioned above new message FAB
+  - Secondary container color styling
 
-- [ ] Implement assistant bottom sheet
-  - Expands from FAB
-  - Chat interface for "Ask your messages"
+- [x] Implement assistant bottom sheet
+  - Modal bottom sheet (90% screen height)
+  - Chat interface with message bubbles
   - Input field and send button
-  - Result cards with rich formatting
+  - Empty state with usage examples
+  - Auto-scrolling message list
 
-- [ ] Create AI assistant ViewModel
-  - Manage conversation state
-  - Call MCP tools internally
-  - Format responses
+- [x] Create AI assistant ViewModel
+  - Natural language query processing
+  - Intent detection (search, list, summary, recent)
+  - MCP tool integration (search_messages, list_threads, list_messages)
+  - Formatted response generation
+  - Conversation history management
 
 ### Insights Dashboard
 - [ ] Design insights screen

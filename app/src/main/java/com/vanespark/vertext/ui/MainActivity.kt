@@ -27,6 +27,7 @@ import com.vanespark.vertext.ui.chat.ChatThreadViewModel
 import com.vanespark.vertext.ui.components.AppNavigationDrawer
 import com.vanespark.vertext.ui.compose.NewChatScreen
 import com.vanespark.vertext.ui.conversations.ConversationListScreen
+import com.vanespark.vertext.ui.insights.InsightsScreen
 import com.vanespark.vertext.ui.permissions.PermissionsScreen
 import com.vanespark.vertext.ui.search.SearchScreen
 import com.vanespark.vertext.ui.settings.SettingsScreen
@@ -77,6 +78,7 @@ class MainActivity : ComponentActivity() {
                     var showSearch by remember { mutableStateOf(false) }
                     var showArchived by remember { mutableStateOf(false) }
                     var showBlocked by remember { mutableStateOf(false) }
+                    var showInsights by remember { mutableStateOf(false) }
                     var showSettings by remember { mutableStateOf(false) }
                     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
@@ -122,6 +124,7 @@ class MainActivity : ComponentActivity() {
                                     showSearch = false
                                     showArchived = false
                                     showBlocked = false
+                                    showInsights = false
                                     showSettings = false
                                 },
                                 onNavigateToArchived = {
@@ -131,6 +134,7 @@ class MainActivity : ComponentActivity() {
                                     showSearch = false
                                     showArchived = true
                                     showBlocked = false
+                                    showInsights = false
                                     showSettings = false
                                 },
                                 onNavigateToBlocked = {
@@ -140,6 +144,17 @@ class MainActivity : ComponentActivity() {
                                     showSearch = false
                                     showArchived = false
                                     showBlocked = true
+                                    showInsights = false
+                                    showSettings = false
+                                },
+                                onNavigateToInsights = {
+                                    Timber.d("Navigate to insights")
+                                    currentThreadId = null
+                                    showNewChat = false
+                                    showSearch = false
+                                    showArchived = false
+                                    showBlocked = false
+                                    showInsights = true
                                     showSettings = false
                                 },
                                 onNavigateToSettings = {
@@ -149,6 +164,7 @@ class MainActivity : ComponentActivity() {
                                     showSearch = false
                                     showArchived = false
                                     showBlocked = false
+                                    showInsights = false
                                     showSettings = true
                                 },
                                 onNavigateToAbout = {
@@ -162,6 +178,14 @@ class MainActivity : ComponentActivity() {
                                         SettingsScreen(
                                             onNavigateBack = {
                                                 showSettings = false
+                                            }
+                                        )
+                                    }
+                                    showInsights -> {
+                                        // Insights screen
+                                        InsightsScreen(
+                                            onNavigateBack = {
+                                                showInsights = false
                                             }
                                         )
                                     }
