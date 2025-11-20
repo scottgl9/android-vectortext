@@ -14,8 +14,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.ViewModelProvider
 import com.vanespark.vectortext.domain.service.PermissionManager
 import com.vanespark.vectortext.domain.service.SmsSyncService
+import com.vanespark.vectortext.ui.chat.ChatThreadScreen
+import com.vanespark.vectortext.ui.chat.ChatThreadViewModel
 import com.vanespark.vectortext.ui.conversations.ConversationListScreen
 import com.vanespark.vectortext.ui.permissions.PermissionsScreen
 import com.vanespark.vectortext.ui.sync.SyncScreen
@@ -38,6 +41,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var smsSyncService: SmsSyncService
 
+    @Inject
+    lateinit var chatThreadViewModelFactory: ChatThreadViewModel.Factory
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -54,6 +60,7 @@ class MainActivity : ComponentActivity() {
                     }
                     var hasSynced by remember { mutableStateOf(false) }
                     var isCheckingSync by remember { mutableStateOf(true) }
+                    var currentThreadId by remember { mutableStateOf<Long?>(null) }
 
                     // Check if initial sync is complete
                     LaunchedEffect(hasPermissions) {
@@ -85,11 +92,22 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
+                        hasPermissions && hasSynced && currentThreadId != null -> {
+                            // Chat thread screen
+                            ChatThreadScreen(
+                                threadId = currentThreadId!!,
+                                onNavigateBack = {
+                                    currentThreadId = null
+                                },
+                                viewModelFactory = chatThreadViewModelFactory
+                            )
+                        }
                         hasPermissions && hasSynced -> {
+                            // Conversation list screen
                             ConversationListScreen(
                                 onConversationClick = { threadId ->
                                     Timber.d("Conversation clicked: $threadId")
-                                    // TODO: Navigate to chat thread screen
+                                    currentThreadId = threadId
                                 },
                                 onNewMessageClick = {
                                     Timber.d("New message clicked")

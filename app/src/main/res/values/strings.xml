@@ -18,6 +18,11 @@
     <string name="delete">Delete</string>
     <string name="pin">Pin</string>
     <string name="unpin">Unpin</string>
+    <string name="mute">Mute</string>
+    <string name="unmute">Unmute</string>
+    <string name="copy">Copy</string>
+    <string name="send">Send</string>
+    <string name="back">Back</string>
 
     <!-- Permissions -->
     <string name="sms_permission_required">SMS permission required</string>
@@ -39,6 +44,11 @@
     <string name="sync_complete">Sync Complete</string>
     <string name="sync_failed">Sync Failed</string>
     <string name="retry_sync">Retry Sync</string>
+
+    <!-- Chat Thread -->
+    <string name="no_messages">No messages yet</string>
+    <string name="send_first_message">Send your first message to start the conversation</string>
+    <string name="type_message">Type a message</string>
 
     <!-- Common -->
     <string name="cancel">Cancel</string>
