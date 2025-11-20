@@ -479,17 +479,31 @@
   - Progress indicators (0-100% with status messages)
   - Confirmation dialogs
 
-### Automations (Rules Engine)
-- [ ] Create automation system
-  - Rule definition structure
-  - Trigger conditions (sender, keyword, time)
-  - Actions (auto-reply, category, notification)
+### Automations (Rules Engine) ✅ (Backend & UI complete)
+- [x] Create automation system
+  - Rule definition structure (sealed classes)
+  - Trigger conditions (sender, keyword, time, days, always)
+  - Conditions (unread, pattern, contacts, category)
+  - Actions (auto-reply, category, mark read, archive, block, etc.)
+  - RuleEngine for evaluation and execution
+  - RuleRepository and RuleDao with Room
+  - Integration with SmsReceiver for automatic processing
+  - Statistics tracking (trigger count, last triggered)
 
-- [ ] Build visual rule builder UI
+- [x] Build rules management UI
+  - RulesScreen with Material You design
+  - List view with expandable rule cards
+  - Toggle enabled/disabled
+  - Delete with confirmation
+  - Empty and loading states
+  - Success/error notifications
+
+- [ ] Build visual rule builder UI (placeholder currently)
   - Drag-and-drop rule creation
   - Condition builder
   - Action selector
   - Test rule feature
+  - Rule templates/presets
 
 ### AI-Enhanced Contact Profiles
 - [ ] Implement rich contact cards
