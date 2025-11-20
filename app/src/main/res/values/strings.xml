@@ -9,8 +9,9 @@
 
     <!-- Conversation List -->
     <string name="no_conversations">No conversations yet</string>
-    <string name="start_conversation">Start a new conversation to begin messaging</string>
+    <string name="no_conversations_subtitle">Start a new conversation to begin messaging</string>
     <string name="new_message">New message</string>
+    <string name="menu">Menu</string>
 
     <!-- Actions -->
     <string name="archive">Archive</string>
