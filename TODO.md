@@ -390,18 +390,21 @@
 
 ## Phase 4 — AI Features + Delightful Interactions 🤖
 
-### Thread Summaries
-- [ ] Implement thread summarization
-  - Load all messages from thread
-  - Format for AI consumption
-  - Call local LLM (placeholder)
-  - Display summary in beautiful card
+### Thread Summaries ✅
+- [x] Implement thread summarization
+  - ThreadSummaryService with statistical analysis
+  - Message counts (total, sent, received), date ranges, time spans
+  - Average message length and messages per day calculation
+  - Message excerpts (first/last messages)
+  - Result<ThreadSummary> domain model
 
-- [ ] Create summary UI component
-  - Expandable summary card in thread
-  - Shimmer loading effect
-  - Syntax highlighting for structured data
-  - Share summary button
+- [x] Create summary UI component
+  - ThreadSummaryBottomSheet with Material You design
+  - Beautiful stats card with primary container color
+  - Loading, error, and success states
+  - Message highlights with color-coded excerpts
+  - Dismissible modal bottom sheet
+  - Integrated into ChatThreadScreen menu
 
 ### Smart Categories
 - [ ] Implement automatic thread categorization

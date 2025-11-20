@@ -64,12 +64,14 @@ fun ChatThreadScreen(
     threadId: Long,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModelFactory: ChatThreadViewModel.Factory
+    viewModelFactory: ChatThreadViewModel.Factory,
+    summaryViewModel: ThreadSummaryViewModel = hiltViewModel()
 ) {
     val viewModel = remember(threadId) {
         viewModelFactory.create(threadId)
     }
     val uiState by viewModel.uiState.collectAsState()
+    val summaryUiState by summaryViewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
@@ -139,6 +141,13 @@ fun ChatThreadScreen(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false }
                     ) {
+                        DropdownMenuItem(
+                            text = { Text("Summary") },
+                            onClick = {
+                                summaryViewModel.generateSummary(threadId)
+                                showMenu = false
+                            }
+                        )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.archive)) },
                             onClick = {
@@ -287,6 +296,13 @@ fun ChatThreadScreen(
             }
         }
     }
+
+    // Thread summary bottom sheet
+    ThreadSummaryBottomSheet(
+        uiState = summaryUiState,
+        onDismiss = { summaryViewModel.dismissSummary() },
+        onRetry = { summaryViewModel.retry(threadId) }
+    )
 }
 
 /**
