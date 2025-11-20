@@ -132,6 +132,10 @@ class MessageRepository @Inject constructor(
         return messageDao.getMessagesWithEmbeddingsPaged(limit, offset)
     }
 
+    suspend fun getAllMessagesSnapshot(): List<Message> {
+        return messageDao.getAllMessages()
+    }
+
     // === Search Operations ===
 
     suspend fun searchMessages(query: String, limit: Int = 50): List<Message> {

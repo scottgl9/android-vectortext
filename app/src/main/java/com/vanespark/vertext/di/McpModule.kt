@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder
 import com.vanespark.vertext.domain.mcp.BuiltInMcpServer
 import com.vanespark.vertext.domain.mcp.tools.ListMessagesTool
 import com.vanespark.vertext.domain.mcp.tools.ListThreadsTool
+import com.vanespark.vertext.domain.mcp.tools.SearchMessagesTool
 import com.vanespark.vertext.domain.mcp.tools.SendMessageTool
 import dagger.Module
 import dagger.Provides
@@ -34,7 +35,8 @@ object McpModule {
         gson: Gson,
         listThreadsTool: ListThreadsTool,
         listMessagesTool: ListMessagesTool,
-        sendMessageTool: SendMessageTool
+        sendMessageTool: SendMessageTool,
+        searchMessagesTool: SearchMessagesTool
     ): BuiltInMcpServer {
         val server = BuiltInMcpServer(gson)
 
@@ -42,8 +44,9 @@ object McpModule {
         server.registerTool(listThreadsTool)
         server.registerTool(listMessagesTool)
         server.registerTool(sendMessageTool)
+        server.registerTool(searchMessagesTool)
 
-        Timber.d("MCP Server initialized with ${3} tools")
+        Timber.d("MCP Server initialized with 4 tools")
         Timber.d("Server URL: ${BuiltInMcpServer.BUILTIN_SERVER_URL}")
 
         return server

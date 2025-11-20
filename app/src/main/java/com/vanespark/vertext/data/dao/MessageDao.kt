@@ -145,4 +145,10 @@ interface MessageDao {
 
     @Query("DELETE FROM messages")
     suspend fun deleteAll()
+
+    /**
+     * Get all messages (for corpus building)
+     */
+    @Query("SELECT * FROM messages ORDER BY date DESC")
+    suspend fun getAllMessages(): List<Message>
 }
