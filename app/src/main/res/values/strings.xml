@@ -34,6 +34,12 @@
     <string name="default_sms_app_description">VectorText must be your default messaging app to handle SMS</string>
     <string name="continue_to_app">Continue to App</string>
 
+    <!-- Sync -->
+    <string name="syncing_messages">Syncing Messages</string>
+    <string name="sync_complete">Sync Complete</string>
+    <string name="sync_failed">Sync Failed</string>
+    <string name="retry_sync">Retry Sync</string>
+
     <!-- Common -->
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
