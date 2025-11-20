@@ -75,4 +75,11 @@
     <string name="loading">Loading…</string>
     <string name="error">Error</string>
     <string name="retry">Retry</string>
+
+    <!-- Settings -->
+    <string name="appearance">Appearance</string>
+    <string name="theme">Theme</string>
+    <string name="notifications">Notifications</string>
+    <string name="messages">Messages</string>
+    <string name="storage_backup">Storage &amp; Backup</string>
 </resources>

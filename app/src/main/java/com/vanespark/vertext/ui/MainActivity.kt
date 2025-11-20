@@ -29,6 +29,7 @@ import com.vanespark.vertext.ui.compose.NewChatScreen
 import com.vanespark.vertext.ui.conversations.ConversationListScreen
 import com.vanespark.vertext.ui.permissions.PermissionsScreen
 import com.vanespark.vertext.ui.search.SearchScreen
+import com.vanespark.vertext.ui.settings.SettingsScreen
 import com.vanespark.vertext.ui.sync.SyncScreen
 import com.vanespark.vertext.ui.theme.VectorTextTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -76,6 +77,7 @@ class MainActivity : ComponentActivity() {
                     var showSearch by remember { mutableStateOf(false) }
                     var showArchived by remember { mutableStateOf(false) }
                     var showBlocked by remember { mutableStateOf(false) }
+                    var showSettings by remember { mutableStateOf(false) }
                     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
                     // Check if initial sync is complete
@@ -120,6 +122,7 @@ class MainActivity : ComponentActivity() {
                                     showSearch = false
                                     showArchived = false
                                     showBlocked = false
+                                    showSettings = false
                                 },
                                 onNavigateToArchived = {
                                     Timber.d("Navigate to archived")
@@ -128,6 +131,7 @@ class MainActivity : ComponentActivity() {
                                     showSearch = false
                                     showArchived = true
                                     showBlocked = false
+                                    showSettings = false
                                 },
                                 onNavigateToBlocked = {
                                     Timber.d("Navigate to blocked")
@@ -136,10 +140,16 @@ class MainActivity : ComponentActivity() {
                                     showSearch = false
                                     showArchived = false
                                     showBlocked = true
+                                    showSettings = false
                                 },
                                 onNavigateToSettings = {
                                     Timber.d("Navigate to settings")
-                                    // TODO: Implement settings screen
+                                    currentThreadId = null
+                                    showNewChat = false
+                                    showSearch = false
+                                    showArchived = false
+                                    showBlocked = false
+                                    showSettings = true
                                 },
                                 onNavigateToAbout = {
                                     Timber.d("Navigate to about")
@@ -147,6 +157,14 @@ class MainActivity : ComponentActivity() {
                                 }
                             ) {
                                 when {
+                                    showSettings -> {
+                                        // Settings screen
+                                        SettingsScreen(
+                                            onNavigateBack = {
+                                                showSettings = false
+                                            }
+                                        )
+                                    }
                                     showBlocked -> {
                                         // Blocked contacts screen
                                         BlockedContactsScreen(
