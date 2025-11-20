@@ -498,12 +498,14 @@
   - Empty and loading states
   - Success/error notifications
 
-- [ ] Build visual rule builder UI (placeholder currently)
-  - Drag-and-drop rule creation
-  - Condition builder
-  - Action selector
-  - Test rule feature
-  - Rule templates/presets
+- [x] Build visual rule builder UI ✅
+  - RuleEditorDialog with full visual builder
+  - TriggerPickerDialog with 5 configuration screens
+  - ConditionPickerDialog with 5 configuration screens
+  - ActionPickerDialog with 7 configuration screens
+  - Material You design with chips and cards
+  - Input validation and proper state management
+  - Integrated into RulesScreen with ViewModel wiring
 
 ### AI-Enhanced Contact Profiles
 - [ ] Implement rich contact cards
