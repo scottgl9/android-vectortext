@@ -21,6 +21,7 @@ import com.vanespark.vertext.data.repository.ThreadRepository
 import com.vanespark.vertext.domain.service.PermissionManager
 import com.vanespark.vertext.domain.service.SmsSyncService
 import com.vanespark.vertext.ui.archived.ArchivedConversationsScreen
+import com.vanespark.vertext.ui.blocked.BlockedContactsScreen
 import com.vanespark.vertext.ui.chat.ChatThreadScreen
 import com.vanespark.vertext.ui.chat.ChatThreadViewModel
 import com.vanespark.vertext.ui.components.AppNavigationDrawer
@@ -74,6 +75,7 @@ class MainActivity : ComponentActivity() {
                     var showNewChat by remember { mutableStateOf(false) }
                     var showSearch by remember { mutableStateOf(false) }
                     var showArchived by remember { mutableStateOf(false) }
+                    var showBlocked by remember { mutableStateOf(false) }
                     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
                     // Check if initial sync is complete
@@ -117,6 +119,7 @@ class MainActivity : ComponentActivity() {
                                     showNewChat = false
                                     showSearch = false
                                     showArchived = false
+                                    showBlocked = false
                                 },
                                 onNavigateToArchived = {
                                     Timber.d("Navigate to archived")
@@ -124,10 +127,15 @@ class MainActivity : ComponentActivity() {
                                     showNewChat = false
                                     showSearch = false
                                     showArchived = true
+                                    showBlocked = false
                                 },
                                 onNavigateToBlocked = {
                                     Timber.d("Navigate to blocked")
-                                    // TODO: Implement blocked contacts
+                                    currentThreadId = null
+                                    showNewChat = false
+                                    showSearch = false
+                                    showArchived = false
+                                    showBlocked = true
                                 },
                                 onNavigateToSettings = {
                                     Timber.d("Navigate to settings")
@@ -139,6 +147,14 @@ class MainActivity : ComponentActivity() {
                                 }
                             ) {
                                 when {
+                                    showBlocked -> {
+                                        // Blocked contacts screen
+                                        BlockedContactsScreen(
+                                            onNavigateBack = {
+                                                showBlocked = false
+                                            }
+                                        )
+                                    }
                                     showArchived -> {
                                         // Archived conversations screen
                                         ArchivedConversationsScreen(

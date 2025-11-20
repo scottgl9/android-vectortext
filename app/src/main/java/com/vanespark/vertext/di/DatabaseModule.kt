@@ -2,6 +2,7 @@ package com.vanespark.vertext.di
 
 import android.content.Context
 import androidx.room.Room
+import com.vanespark.vertext.data.dao.BlockedContactDao
 import com.vanespark.vertext.data.dao.ContactDao
 import com.vanespark.vertext.data.dao.MessageDao
 import com.vanespark.vertext.data.dao.ThreadDao
@@ -50,5 +51,11 @@ object DatabaseModule {
     @Singleton
     fun provideContactDao(database: VectorTextDatabase): ContactDao {
         return database.contactDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideBlockedContactDao(database: VectorTextDatabase): BlockedContactDao {
+        return database.blockedContactDao()
     }
 }
