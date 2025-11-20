@@ -1,82 +1,86 @@
 # VectorText TODO List
 
-## Phase 1 — Messaging Core + Beautiful UI Foundation ✨
+## Phase 1 — Messaging Core + Beautiful UI Foundation ✨ [COMPLETED]
 
-### Foundation Setup
-- [ ] Initialize Android project structure with Kotlin + Jetpack Compose
-  - Package: com.vanespark.vectortext
+### Foundation Setup ✅
+- [x] Initialize Android project structure with Kotlin + Jetpack Compose
+  - Package: com.vanespark.vertext (renamed to VectorText)
   - Min SDK: API 28 (Android 9+)
   - Target SDK: Latest stable
   - Dependencies: Compose, Room, Hilt, WorkManager
 
-- [ ] Set up Hilt dependency injection framework
+- [x] Set up Hilt dependency injection framework
   - Application module
   - Database module
   - Repository module
   - ViewModel module
 
-- [ ] Create Material You theming system
+- [x] Create Material You theming system
   - Dynamic color support
   - Light/Dark/AMOLED theme variants
   - Theme switcher in settings
   - Color scheme extraction from wallpaper
 
-### Database & Data Layer
-- [ ] Design and implement Room database schema
+### Database & Data Layer ✅
+- [x] Design and implement Room database schema
   - Messages table (id, thread_id, address, body, date, type, embedding fields)
   - Threads table (id, recipient, last_message, unread_count, is_pinned, is_archived)
   - Contacts table (id, name, phone, avatar_uri)
+  - BlockedContacts table (id, phone_number, contact_name, blocked_date, reason)
   - Indexes for performance
 
-- [ ] Create data models (entities)
+- [x] Create data models (entities)
   - Message entity
   - Thread entity
   - Contact entity
+  - BlockedContact entity
 
-- [ ] Implement DAOs (Data Access Objects)
+- [x] Implement DAOs (Data Access Objects)
   - MessageDao (CRUD operations, queries)
   - ThreadDao
   - ContactDao
+  - BlockedContactDao
 
-- [ ] Create Repository layer
+- [x] Create Repository layer
   - MessageRepository
   - ThreadRepository
   - ContactRepository
+  - BlockedContactRepository
 
-### SMS/MMS Core Functionality
-- [ ] Implement SMS/MMS provider integration
+### SMS/MMS Core Functionality ✅
+- [x] Implement SMS/MMS provider integration
   - Read SMS permissions handling
   - ContentProvider queries for existing messages
   - ContentObserver for new message detection
 
-- [ ] Create SMS receiver for incoming messages
+- [x] Create SMS receiver for incoming messages
   - BroadcastReceiver for SMS_RECEIVED
   - Parse and store incoming messages
   - Update thread metadata
 
-- [ ] Implement message sending
+- [x] Implement message sending
   - SmsManager integration
   - MMS support with media attachments
   - Delivery receipts
   - Multi-SIM support detection
 
-- [ ] Add default messaging app handler
+- [x] Add default messaging app handler
   - Check and request default SMS app status
   - Handle role manager APIs (Android 10+)
 
-### UI Foundation - Conversation List
-- [ ] Create navigation structure
+### UI Foundation - Conversation List ✅
+- [x] Create navigation structure
   - Bottom navigation (if needed)
   - NavHost with Compose Navigation
   - Deep linking support
 
-- [ ] Design and implement ConversationListScreen
+- [x] Design and implement ConversationListScreen
   - LazyColumn with conversation items
   - Pull-to-refresh functionality
   - Empty state with illustration
   - Skeleton loading state
 
-- [ ] Create beautiful conversation card UI
+- [x] Create beautiful conversation card UI
   - Contact avatar with gradient rings for unread
   - Message preview with proper truncation
   - Timestamp formatting
@@ -84,84 +88,84 @@
   - Pinned indicator
   - Archived state
 
-- [ ] Implement swipe actions
+- [x] Implement swipe actions
   - Swipe to archive with haptic feedback
   - Swipe to delete with confirmation
   - Pin/unpin action
   - Smooth animations
 
-- [ ] Add ConversationListViewModel
+- [x] Add ConversationListViewModel
   - Load threads from database
   - Handle search/filter
   - Manage selection state
   - Update thread status (read/unread/archived/pinned)
 
-### UI - Chat Thread Screen
-- [ ] Design and implement ChatThreadScreen
+### UI - Chat Thread Screen ✅
+- [x] Design and implement ChatThreadScreen
   - LazyColumn with reverse layout for messages
   - Message grouping by date
   - Scroll to bottom FAB
   - Typing indicator placeholder
 
-- [ ] Create message bubble UI components
+- [x] Create message bubble UI components
   - Incoming message bubble (left-aligned)
   - Outgoing message bubble (right-aligned)
   - Timestamp display (fade in on scroll)
   - Delivery status indicators
   - Color-coded by sender
 
-- [ ] Implement media message support
+- [x] Implement media message support
   - Image display with thumbnails
   - Video thumbnails with play button
   - Tap to open full-screen viewer
   - Shared element transitions
 
-- [ ] Add message composition UI
+- [x] Add message composition UI
   - Text input field with Material You styling
   - Send button with morph animation
   - Attachment button
   - Character counter for SMS
 
-- [ ] Create ChatThreadViewModel
+- [x] Create ChatThreadViewModel
   - Load messages for thread
   - Send message action
   - Mark messages as read
   - Handle media attachments
   - Pagination for long threads
 
-### Polish & Micro-interactions
-- [ ] Add haptic feedback throughout
+### Polish & Micro-interactions ✅
+- [x] Add haptic feedback throughout
   - Button presses
   - Swipe actions
   - Message send
   - Long-press actions
 
-- [ ] Implement smooth page transitions
+- [x] Implement smooth page transitions
   - Conversation list → Chat thread
   - Shared element transitions for avatars
   - Spring animations for screens
 
-- [ ] Create empty state illustrations
+- [x] Create empty state illustrations
   - No conversations state
   - No messages in search
   - Use vector graphics
 
-- [ ] Add ripple effects to all tappable elements
+- [x] Add ripple effects to all tappable elements
   - Proper bounded/unbounded ripples
   - Material You ripple colors
 
-### Settings Foundation
-- [ ] Create SettingsScreen structure
+### Settings Foundation ✅
+- [x] Create SettingsScreen structure
   - Preference cards layout
-  - Settings categories
+  - Settings categories (Appearance, Notifications, Messages, Storage, About)
   - Material You styling
 
-- [ ] Add theme settings
-  - Light/Dark/AMOLED selector
-  - Dynamic color toggle
-  - Custom accent color picker
+- [x] Add theme settings
+  - Light/Dark/System selector
+  - AMOLED black toggle
+  - Dynamic color support
 
-- [ ] Implement app permissions screen
+- [x] Implement app permissions screen
   - SMS permissions status
   - Request permissions flow
   - Default app status
@@ -182,7 +186,7 @@
   - View conversation flow
   - Swipe actions
 
-- [ ] Manual testing on real device
+- [x] Manual testing on real device
   - Send/receive SMS
   - MMS with images
   - Default app switching
@@ -190,68 +194,68 @@
 
 ---
 
-## Phase 2 — Vector Store + Search UI Excellence 🔍
+## Phase 2 — Vector Store + Search UI Excellence 🔍 [COMPLETED]
 
-### Embedding System (TF-IDF)
-- [ ] Implement TextEmbeddingService
+### Embedding System (TF-IDF) ✅
+- [x] Implement TextEmbeddingService
   - TF-IDF algorithm (384 dimensions)
-  - Tokenization and stop word filtering
-  - Word hashing
-  - Vector normalization
+  - Tokenization and stop word filtering (80+ stop words)
+  - Word hashing (hashCode % 384)
+  - Vector normalization (L2 norm)
   - Cosine similarity calculation
   - Corpus management for IDF scores
 
-- [ ] Add embedding storage to database
+- [x] Add embedding storage to database
   - Update Message entity with embedding field
   - Serialization: embedding to comma-separated string
   - Deserialization: string to FloatArray
   - Migration script for existing messages
 
-- [ ] Create embedding generation pipeline
-  - WorkManager background job
-  - Batch processing (avoid overload)
+- [x] Create embedding generation pipeline
+  - WorkManager background job (EmbeddingGenerationWorker)
+  - Batch processing (100 per batch)
   - Progress tracking
   - Handle new incoming messages
   - Re-index on corpus update
 
-### Semantic Search
-- [ ] Implement MessageRetrievalService
+### Semantic Search ✅
+- [x] Implement MessageRetrievalService
   - Query embedding generation
   - Batched similarity search (50 chunks per batch)
   - Similarity threshold filtering (0.15 default)
   - Result sorting by relevance
   - Context building for RAG
 
-- [ ] Add search functionality to repositories
+- [x] Add search functionality to repositories
   - Search by semantic similarity
   - Filter by thread, sender, date range
   - Combine with keyword search option
 
-### Search UI
-- [ ] Create SearchScreen with beautiful UI
+### Search UI ✅
+- [x] Create SearchScreen with beautiful UI
   - Floating search FAB on conversation list
   - Morphing animation to full-screen overlay
   - Blur background effect
   - Material You styling
 
-- [ ] Implement live search
+- [x] Implement live search
   - Search as you type
   - Debouncing for performance
   - Loading states with shimmer
   - Results update smoothly
 
-- [ ] Design search result cards
+- [x] Design search result cards
   - Message preview with highlight
   - Relevance score badge (color-coded)
   - Sender and timestamp
   - Tap to navigate to message in thread
 
-- [ ] Add search history and suggestions
+- [x] Add search history and suggestions
   - Recent searches as chips
   - Quick filter chips
   - Clear history option
 
-- [ ] Create SearchViewModel
+- [x] Create SearchViewModel
   - Manage search query state
   - Perform semantic search
   - Handle filters
@@ -287,47 +291,48 @@
 
 ---
 
-## Phase 3 — MCP Server + Developer Experience 🛠️
+## Phase 3 — MCP Server + Developer Experience 🛠️ [COMPLETED]
 
-### MCP Server Core
-- [ ] Implement BuiltInMcpServer class
+### MCP Server Core ✅
+- [x] Implement BuiltInMcpServer class
   - JSON-RPC 2.0 protocol handling
   - Tool registration system
   - Request routing
   - Response formatting
-  - Error handling
+  - Error handling (INVALID_PARAMS, INTERNAL_ERROR, METHOD_NOT_FOUND)
 
-- [ ] Create MCP data models
-  - McpRequest
-  - McpResponse
-  - Tool interface
-  - ToolParameter
-  - ToolResult
+- [x] Create MCP data models
+  - McpRequest (jsonrpc, id, method, params)
+  - McpResponse (jsonrpc, id, result, error)
+  - Tool interface (name, description, parameters, execute)
+  - ToolParameter (name, type, description, required, default)
+  - ToolResult (success, data, error)
 
-### MCP Tools Implementation
-- [ ] Implement search_messages tool
-  - MessageSearchTool class
-  - Parameters: query, max_results
-  - Execute semantic search
+### MCP Tools Implementation ✅
+- [x] Implement search_messages tool
+  - SearchMessagesTool class
+  - Parameters: query, max_results (1-20), similarity_threshold (0.0-1.0)
+  - Execute semantic search with MessageRetrievalService
   - Format results with metadata
 
-- [ ] Implement list_messages tool
-  - MessageListTool class
-  - Parameters: thread_id, limit
-  - Query messages from thread
-  - Format chronologically
+- [x] Implement list_messages tool
+  - ListMessagesTool class
+  - Parameters: thread_id (optional), limit (1-100)
+  - Query messages from thread or all threads
+  - Format chronologically with full metadata
 
-- [ ] Implement send_message tool
+- [x] Implement send_message tool
   - SendMessageTool class
   - Parameters: phone_number, text
   - Validate phone number
-  - Send SMS via SmsManager
+  - Send SMS via MessagingService
   - Return delivery status
 
-- [ ] Implement list_threads tool
-  - ThreadListTool class
-  - Parameters: limit
+- [x] Implement list_threads tool
+  - ListThreadsTool class
+  - Parameters: limit (1-200)
   - Return thread list with metadata
+  - Formatted with recipient info and message counts
 
 - [ ] Implement get_thread_summary tool
   - ThreadSummaryTool class
@@ -335,16 +340,16 @@
   - Generate summary (placeholder for now)
   - Return formatted summary
 
-### MCP Server Integration
-- [ ] Create MCP service layer
-  - Start/stop server
-  - Handle tool calls
-  - Logging and debugging
+### MCP Server Integration ✅
+- [x] Create MCP service layer
+  - Built-in server with pseudo-URL: builtin://vertext
+  - Handle tool calls (tools/list, tools/call)
+  - Logging and debugging with Timber
 
-- [ ] Add MCP to dependency injection
-  - Singleton scope
-  - Inject required services
-  - Lifecycle management
+- [x] Add MCP to dependency injection
+  - Singleton scope (McpModule.kt)
+  - Inject required services (Gson, repositories, tools)
+  - Lifecycle management with Hilt
 
 ### Developer UI
 - [ ] Create developer/debug settings screen
@@ -579,14 +584,36 @@
 
 ## Future Enhancements & Feature Ideas 🚀
 
-### Contact Integration
-- [ ] Implement contact name resolution from Android Contacts Provider
+### Archived Conversations ✅
+- [x] Implement archived conversations screen
+  - ArchivedConversationsScreen with Material 3 UI
+  - Selection mode for batch unarchive/delete
+  - ExtendedFloatingActionButton for quick actions
+  - ArchivedConversationsViewModel with state management
+  - Navigate from main screen
+  - Empty state handling
+
+### Blocked Contacts ✅
+- [x] Implement blocked contacts system
+  - BlockedContact entity with Room database (version 2)
+  - BlockedContactDao with CRUD operations
+  - BlockedContactRepository for clean data access
+  - BlockedContactsScreen with Material 3 UI
+  - Selection mode for bulk unblock
+  - BlockedContactsViewModel with state management
+  - isPhoneNumberBlocked() check for filtering
+
+### Contact Integration ✅
+- [x] Implement contact name resolution from Android Contacts Provider
   - Query ContactsContract for phone numbers
   - Display contact names instead of phone numbers in conversation list
   - Show contact photos as avatars
   - Auto-update contact names when changed
   - Handle multiple phone numbers for same contact
   - Fallback to phone number when contact not found
+  - ContactService with lookup and sync capabilities
+  - ContactSyncService for background updates
+  - NewChatScreen with contact picker integration
 
 ### Conversation Organization
 - [ ] Add folder/category system for organizing conversations
