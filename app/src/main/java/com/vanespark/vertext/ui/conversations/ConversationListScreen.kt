@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -16,6 +18,8 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,6 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.vanespark.vertext.R
+import com.vanespark.vertext.data.model.ThreadCategory
 
 /**
  * Main conversation list screen
@@ -102,6 +107,7 @@ fun ConversationListScreen(
             onArchiveConversation = { viewModel.archiveConversation(it) },
             onDeleteConversation = { viewModel.deleteConversation(it) },
             onPinConversation = { viewModel.pinConversation(it) },
+            onCategorySelected = { viewModel.selectCategory(it) },
             modifier = Modifier.padding(paddingValues)
         )
     }
@@ -173,26 +179,39 @@ private fun ConversationListContent(
     onArchiveConversation: (Long) -> Unit,
     onDeleteConversation: (Long) -> Unit,
     onPinConversation: (Long) -> Unit,
+    onCategorySelected: (String?) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    when {
-        uiState.isLoading -> {
-            LoadingState(modifier = modifier)
-        }
-        uiState.conversations.isEmpty() -> {
-            EmptyState(modifier = modifier)
-        }
-        else -> {
-            ConversationList(
-                conversations = uiState.conversations,
-                selectedConversations = uiState.selectedConversations,
-                onConversationClick = onConversationClick,
-                onConversationLongClick = onConversationLongClick,
-                onArchiveConversation = onArchiveConversation,
-                onDeleteConversation = onDeleteConversation,
-                onPinConversation = onPinConversation,
-                modifier = modifier
+    Column(modifier = modifier.fillMaxSize()) {
+        // Category filter chips
+        if (uiState.availableCategories.isNotEmpty()) {
+            CategoryFilterChips(
+                availableCategories = uiState.availableCategories,
+                selectedCategory = uiState.selectedCategory,
+                onCategorySelected = onCategorySelected
             )
+        }
+
+        // Conversation list content
+        when {
+            uiState.isLoading -> {
+                LoadingState(modifier = Modifier.weight(1f))
+            }
+            uiState.conversations.isEmpty() -> {
+                EmptyState(modifier = Modifier.weight(1f))
+            }
+            else -> {
+                ConversationList(
+                    conversations = uiState.conversations,
+                    selectedConversations = uiState.selectedConversations,
+                    onConversationClick = onConversationClick,
+                    onConversationLongClick = onConversationLongClick,
+                    onArchiveConversation = onArchiveConversation,
+                    onDeleteConversation = onDeleteConversation,
+                    onPinConversation = onPinConversation,
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
     }
 }
@@ -265,6 +284,55 @@ private fun EmptyState(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 32.dp)
+            )
+        }
+    }
+}
+
+/**
+ * Horizontal scrollable row of category filter chips
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CategoryFilterChips(
+    availableCategories: List<String>,
+    selectedCategory: String?,
+    onCategorySelected: (String?) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    LazyRow(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // "All" chip (always first)
+        item {
+            FilterChip(
+                selected = selectedCategory == null,
+                onClick = { onCategorySelected(null) },
+                label = { Text("All") },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            )
+        }
+
+        // Individual category chips
+        items(availableCategories) { categoryStr ->
+            val category = ThreadCategory.fromString(categoryStr)
+            FilterChip(
+                selected = selectedCategory == categoryStr,
+                onClick = { onCategorySelected(categoryStr) },
+                label = {
+                    Text("${category.icon} ${category.displayName}")
+                },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             )
         }
     }

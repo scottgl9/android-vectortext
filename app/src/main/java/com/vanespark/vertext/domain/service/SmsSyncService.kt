@@ -20,7 +20,8 @@ import javax.inject.Singleton
 class SmsSyncService @Inject constructor(
     private val smsProviderService: SmsProviderService,
     private val messageRepository: MessageRepository,
-    private val threadRepository: ThreadRepository
+    private val threadRepository: ThreadRepository,
+    private val threadCategorizationService: ThreadCategorizationService
 ) {
 
     /**
@@ -39,6 +40,7 @@ class SmsSyncService @Inject constructor(
         SYNCING_THREADS,
         READING_MESSAGES,
         SYNCING_MESSAGES,
+        CATEGORIZING_THREADS,
         COMPLETED,
         FAILED
     }
@@ -154,7 +156,21 @@ class SmsSyncService @Inject constructor(
             // Update thread metadata after sync
             updateThreadMetadata()
 
-            // Step 5: Completed
+            // Step 5: Categorize threads
+            emit(
+                SyncProgress(
+                    currentStep = SyncStep.CATEGORIZING_THREADS,
+                    progress = 0.95f,
+                    itemsProcessed = 0,
+                    totalItems = systemThreads.size,
+                    message = "Categorizing conversations..."
+                )
+            )
+
+            val categorizedCount = threadCategorizationService.categorizeAllThreads()
+            Timber.d("Categorized $categorizedCount threads")
+
+            // Step 6: Completed
             emit(
                 SyncProgress(
                     currentStep = SyncStep.COMPLETED,
@@ -202,7 +218,13 @@ class SmsSyncService @Inject constructor(
             // Update thread metadata
             updateThreadMetadata()
 
-            Timber.d("Incremental sync: ${newMessages.size} new messages")
+            // Categorize affected threads
+            val affectedThreadIds = newMessages.map { it.threadId }.distinct()
+            affectedThreadIds.forEach { threadId ->
+                threadCategorizationService.categorizeThread(threadId)
+            }
+
+            Timber.d("Incremental sync: ${newMessages.size} new messages, categorized ${affectedThreadIds.size} threads")
             Result.success(newMessages.size)
         } catch (e: Exception) {
             Timber.e(e, "Error during incremental sync")

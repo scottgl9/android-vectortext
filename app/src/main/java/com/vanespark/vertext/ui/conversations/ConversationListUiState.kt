@@ -12,7 +12,9 @@ data class ConversationListUiState(
     val unreadCount: Int = 0,
     val selectedConversations: Set<Long> = emptySet(),
     val isSelectionMode: Boolean = false,
-    val searchQuery: String = ""
+    val searchQuery: String = "",
+    val selectedCategory: String? = null, // null means "All"
+    val availableCategories: List<String> = emptyList()
 )
 
 /**

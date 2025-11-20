@@ -28,8 +28,11 @@ class ConversationListViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ConversationListUiState(isLoading = true))
     val uiState: StateFlow<ConversationListUiState> = _uiState.asStateFlow()
 
+    private val _selectedCategory = MutableStateFlow<String?>(null)
+
     init {
         loadConversations()
+        loadAvailableCategories()
     }
 
     /**
@@ -39,25 +42,50 @@ class ConversationListViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 threadRepository.getAllThreads(),
-                threadRepository.getTotalUnreadCount()
-            ) { threads, unreadCount ->
-                threads to (unreadCount ?: 0)
+                threadRepository.getTotalUnreadCount(),
+                _selectedCategory
+            ) { threads, unreadCount, category ->
+                Triple(threads, unreadCount ?: 0, category)
             }
                 .catch { e ->
                     Timber.e(e, "Error loading conversations")
                     _uiState.update { it.copy(isLoading = false, error = e.message) }
                 }
-                .collect { (threads, unreadCount) ->
-                    val conversations = threads.map { ConversationUiItem.fromThread(it) }
+                .collect { (threads, unreadCount, category) ->
+                    // Filter by category if one is selected
+                    val filteredThreads = if (category != null) {
+                        threads.filter { it.category == category }
+                    } else {
+                        threads
+                    }
+
+                    val conversations = filteredThreads.map { ConversationUiItem.fromThread(it) }
                     _uiState.update {
                         it.copy(
                             conversations = conversations,
                             isLoading = false,
                             unreadCount = unreadCount,
-                            error = null
+                            error = null,
+                            selectedCategory = category
                         )
                     }
                 }
+        }
+    }
+
+    /**
+     * Load available categories
+     */
+    private fun loadAvailableCategories() {
+        viewModelScope.launch {
+            try {
+                val categories = threadRepository.getAllCategories()
+                _uiState.update {
+                    it.copy(availableCategories = categories)
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to load categories")
+            }
         }
     }
 
@@ -229,6 +257,13 @@ class ConversationListViewModel @Inject constructor(
             }
             clearSelection()
         }
+    }
+
+    /**
+     * Select a category filter
+     */
+    fun selectCategory(category: String?) {
+        _selectedCategory.value = category
     }
 
     /**

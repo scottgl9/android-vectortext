@@ -108,6 +108,16 @@ class SyncViewModel @Inject constructor(
                             }
                         }
 
+                        SmsSyncService.SyncStep.CATEGORIZING_THREADS -> {
+                            _uiState.update {
+                                it.copy(
+                                    progress = progress.progress,
+                                    statusMessage = progress.message,
+                                    currentStep = progress.currentStep
+                                )
+                            }
+                        }
+
                         SmsSyncService.SyncStep.COMPLETED -> {
                             _uiState.update {
                                 it.copy(

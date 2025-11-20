@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.vanespark.vertext.R
@@ -136,6 +137,15 @@ fun SettingsScreen(
                     lastIndexed = uiState.lastIndexedTimestamp,
                     onRefresh = { viewModel.refreshIndexingStats() },
                     onReindex = { viewModel.triggerReindexing() }
+                )
+            }
+            item {
+                CategorizationItem(
+                    categorizedCount = uiState.categorizedThreadCount,
+                    totalCount = uiState.totalThreadCount,
+                    isCategorizing = uiState.isCategorizing,
+                    onRefresh = { viewModel.refreshCategoryStats() },
+                    onCategorize = { viewModel.triggerCategorization() }
                 )
             }
 
@@ -536,6 +546,110 @@ private fun formatTimeAgo(timestamp: Long): String {
             val date = java.text.SimpleDateFormat("MMM d, yyyy", java.util.Locale.US)
                 .format(java.util.Date(timestamp))
             date
+        }
+    }
+}
+
+/**
+ * Categorization status item showing thread categorization statistics
+ */
+@Composable
+private fun CategorizationItem(
+    categorizedCount: Int,
+    totalCount: Int,
+    isCategorizing: Boolean,
+    onRefresh: () -> Unit,
+    onCategorize: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Category,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "Thread Categorization",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                IconButton(onClick = onRefresh) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "Refresh"
+                    )
+                }
+            }
+
+            // Progress indicator
+            if (isCategorizing) {
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Text(
+                    text = "Categorizing...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            } else {
+                // Stats
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text(
+                            text = "$categorizedCount / $totalCount",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Threads Categorized",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            // Action button
+            Button(
+                onClick = onCategorize,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isCategorizing
+            ) {
+                Icon(
+                    imageVector = if (isCategorizing) Icons.Default.HourglassEmpty else Icons.Default.Category,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(if (isCategorizing) "Categorizing..." else "Categorize Threads")
+            }
         }
     }
 }

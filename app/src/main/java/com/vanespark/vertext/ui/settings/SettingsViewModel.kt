@@ -7,6 +7,8 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.vanespark.vertext.data.repository.MessageRepository
+import com.vanespark.vertext.data.repository.ThreadRepository
+import com.vanespark.vertext.domain.service.ThreadCategorizationService
 import com.vanespark.vertext.domain.worker.EmbeddingGenerationWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -40,6 +42,11 @@ data class SettingsUiState(
     val indexingProgress: Float? = null, // null when not indexing, 0.0-1.0 when indexing
     val lastIndexedTimestamp: Long? = null,
 
+    // Categorization
+    val isCategorizing: Boolean = false,
+    val categorizedThreadCount: Int = 0,
+    val totalThreadCount: Int = 0,
+
     // About
     val appVersion: String = "1.0.0",
 
@@ -55,7 +62,9 @@ data class SettingsUiState(
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val messageRepository: MessageRepository
+    private val messageRepository: MessageRepository,
+    private val threadRepository: ThreadRepository,
+    private val threadCategorizationService: ThreadCategorizationService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -67,6 +76,7 @@ class SettingsViewModel @Inject constructor(
         loadSettings()
         loadAppVersion()
         loadIndexingStats()
+        loadCategoryStats()
     }
 
     /**
@@ -355,6 +365,56 @@ class SettingsViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    /**
+     * Load category statistics
+     */
+    private fun loadCategoryStats() {
+        viewModelScope.launch {
+            try {
+                val allThreads = threadRepository.getAllThreadsSnapshot()
+                val categorizedThreads = allThreads.count { !it.category.isNullOrEmpty() }
+
+                _uiState.update {
+                    it.copy(
+                        categorizedThreadCount = categorizedThreads,
+                        totalThreadCount = allThreads.size
+                    )
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to load category stats")
+            }
+        }
+    }
+
+    /**
+     * Trigger thread categorization
+     */
+    fun triggerCategorization() {
+        viewModelScope.launch {
+            try {
+                _uiState.update { it.copy(isCategorizing = true) }
+
+                val categorizedCount = threadCategorizationService.categorizeAllThreads()
+                Timber.d("Categorized $categorizedCount threads")
+
+                // Reload stats after categorization
+                loadCategoryStats()
+
+                _uiState.update { it.copy(isCategorizing = false) }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to categorize threads")
+                _uiState.update { it.copy(isCategorizing = false) }
+            }
+        }
+    }
+
+    /**
+     * Refresh category stats
+     */
+    fun refreshCategoryStats() {
+        loadCategoryStats()
     }
 
     /**
