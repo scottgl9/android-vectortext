@@ -58,4 +58,10 @@ object DatabaseModule {
     fun provideBlockedContactDao(database: VectorTextDatabase): BlockedContactDao {
         return database.blockedContactDao()
     }
+
+    @Provides
+    @Singleton
+    fun provideRuleDao(database: VectorTextDatabase): com.vanespark.vertext.data.dao.RuleDao {
+        return database.ruleDao()
+    }
 }
