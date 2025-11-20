@@ -1,7 +1,7 @@
-# VectorText Development Progress
+# VerText Development Progress
 
 ## Overview
-This document tracks completed tasks, implementation decisions, and challenges encountered during VectorText development.
+This document tracks completed tasks, implementation decisions, and challenges encountered during VerText development.
 
 ---
 
@@ -32,7 +32,7 @@ This document tracks completed tasks, implementation decisions, and challenges e
   - `app/src/main/res/values/themes.xml`
   - `app/src/main/res/xml/backup_rules.xml`
   - `app/src/main/res/xml/data_extraction_rules.xml`
-  - `app/src/main/java/com/vanespark/vectortext/VectorTextApplication.kt`
+  - `app/src/main/java/com/vanespark/vectortext/VerTextApplication.kt`
   - `app/src/main/java/com/vanespark/vectortext/ui/MainActivity.kt`
   - `app/src/main/java/com/vanespark/vectortext/ui/theme/Theme.kt`
   - `app/src/main/java/com/vanespark/vectortext/ui/theme/Type.kt`
@@ -101,7 +101,7 @@ This document tracks completed tasks, implementation decisions, and challenges e
     - All repositories injected via Hilt for DI
 
   - **Database Configuration**:
-    - `VectorTextDatabase` Room database class
+    - `VerTextDatabase` Room database class
     - Updated `DatabaseModule` with Hilt providers for database and DAOs
     - Schema export enabled for version tracking
 
@@ -112,14 +112,14 @@ This document tracks completed tasks, implementation decisions, and challenges e
   - `data/dao/MessageDao.kt` (148 lines)
   - `data/dao/ThreadDao.kt` (131 lines)
   - `data/dao/ContactDao.kt` (75 lines)
-  - `data/database/VectorTextDatabase.kt` (29 lines)
+  - `data/database/VerTextDatabase.kt` (29 lines)
   - `data/repository/MessageRepository.kt` (177 lines)
   - `data/repository/ThreadRepository.kt` (197 lines)
   - `data/repository/ContactRepository.kt` (146 lines)
 
 - **Files Modified**:
   - `di/DatabaseModule.kt` - Added Room database and DAO providers
-  - `VectorTextApplication.kt` - Fixed WorkManager configuration naming conflict
+  - `VerTextApplication.kt` - Fixed WorkManager configuration naming conflict
   - `build.gradle.kts` - Downgraded Kotlin from 2.1.0 to 2.0.21 for Hilt compatibility
 
 - **Decisions Made**:
@@ -550,6 +550,86 @@ This document tracks completed tasks, implementation decisions, and challenges e
   - Add swipe actions for messages/conversations
   - Test incremental sync on app resume
   - Implement search functionality
+
+---
+
+### [2025-11-20 12:33] - Real Device Testing & Samsung Compatibility Fixes
+- **Task**: Connected to Samsung Galaxy Z Fold6 via wireless ADB, tested app, and fixed critical sync issues
+- **Device**: Samsung Galaxy Z Fold6 (SM-F966U), Android 14, One UI 6.1
+- **Connection**: Wireless ADB (192.168.1.141:46483)
+
+- **Testing Performed**:
+  - ✅ Built and installed debug APK successfully
+  - ✅ Launched app on real device
+  - ✅ Tested conversation list UI with real synced messages (109 threads)
+  - ✅ Tested chat thread UI with actual SMS messages
+  - ✅ Tested back navigation from chat to conversation list
+  - ✅ Verified Material You theming on Samsung device
+  - ✅ Confirmed message sync working (4,049 messages synced)
+
+- **Critical Issues Fixed**:
+  1. **Foreign Key Constraint Violations**:
+     - **Problem**: Messages couldn't be inserted because referenced thread IDs didn't exist
+     - **Root Cause 1**: Thread entity had `autoGenerate=true`, generating new IDs instead of preserving system SMS thread IDs
+     - **Root Cause 2**: Samsung SMS provider doesn't have standard `recipient_ids` and `message_count` columns
+     - **Fix 1**: Changed Thread.id from `autoGenerate=true` to `autoGenerate=false` to preserve system IDs
+     - **Fix 2**: Rewrote `SmsProviderService.readAllThreads()` to build threads from messages instead of querying `Telephony.Threads.CONTENT_URI`
+     - **Result**: Successfully synced 109 threads and 4,049 messages on Samsung device
+
+  2. **Samsung SMS Provider Schema Incompatibility**:
+     - **Problem**: Standard Android `Telephony.Threads` API failed on Samsung devices
+     - **Error**: `SQLiteException: no such column: recipient_ids`
+     - **Solution**: Vendor-agnostic implementation that builds threads by querying `Telephony.Sms.CONTENT_URI` and grouping by `thread_id`
+     - **Benefit**: Works on all Android vendors (Samsung, Google, OnePlus, etc.)
+
+- **Files Modified**:
+  - `data/model/Thread.kt` - Changed `autoGenerate=false` for id field
+  - `data/repository/ThreadRepository.kt` - Updated `getOrCreateThread()` to generate unique IDs manually
+  - `data/provider/SmsProviderService.kt` - Complete rewrite of `readAllThreads()` for vendor compatibility
+
+- **UI Testing Results**:
+  - **Conversation List**:
+    - ✅ App name displays as "VerText" in title bar
+    - ✅ All 109 conversations load and display correctly
+    - ✅ Message previews, timestamps, and contact avatars render properly
+    - ✅ Material You dark theme looks excellent
+    - ✅ Hamburger menu and search icons visible
+    - ✅ New message FAB positioned correctly
+
+  - **Chat Thread Screen**:
+    - ✅ Back navigation works perfectly
+    - ✅ Phone number displays in header
+    - ✅ Messages render with proper bubbles
+    - ✅ Date headers show correctly (Nov 18)
+    - ✅ Timestamps display (9:16 AM)
+    - ✅ Message input field and send button functional
+    - ✅ Three-dot menu for thread options present
+
+- **Sync Performance**:
+  - Total threads synced: 109
+  - Total messages synced: 4,049
+  - Sync completion: Successful on first attempt after fixes
+  - No crashes or ANRs during testing
+
+- **Build Status**: ✅ Build successful (43 tasks, minor deprecation warnings only)
+  - Warning: Icons.Filled.VolumeOff deprecated (use AutoMirrored version)
+  - Warning: LocalLifecycleOwner deprecated (moved to lifecycle-runtime-compose)
+  - Warning: statusBarColor/navigationBarColor deprecated
+
+- **Decisions Made**:
+  - Samsung compatibility requires vendor-agnostic SMS provider implementation
+  - Cannot rely on `Telephony.Threads` API - must build threads from messages
+  - Thread ID preservation is critical for foreign key integrity
+  - Manual ID generation uses timestamp + hashcode to avoid collisions
+
+- **Next Steps**:
+  - Test message sending functionality
+  - Implement contact name resolution from Contacts provider
+  - Add clipboard functionality for message copy
+  - Fix deprecation warnings (AutoMirrored icons, LocalLifecycleOwner)
+  - Test on additional devices (Google Pixel, OnePlus) for compatibility verification
+  - Implement incremental sync on app resume
+  - Add search functionality
 
 ---
 

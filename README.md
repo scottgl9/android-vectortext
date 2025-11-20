@@ -1,2 +1,2 @@
 # android-vectortext
-VectorText Messaging app
+VerText Messaging app
