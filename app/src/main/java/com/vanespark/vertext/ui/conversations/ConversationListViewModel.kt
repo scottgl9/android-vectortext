@@ -239,6 +239,42 @@ class ConversationListViewModel @Inject constructor(
     }
 
     /**
+     * Search conversations by name or message content
+     */
+    fun searchConversations(query: String) {
+        if (query.isEmpty()) {
+            // Reset to show all conversations
+            loadConversations()
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                val allThreads = threadRepository.getAllThreadsSnapshot()
+                val filtered = allThreads.filter { thread ->
+                    // Search by recipient name or phone number
+                    thread.recipientName?.contains(query, ignoreCase = true) == true ||
+                    thread.recipient.contains(query, ignoreCase = true) ||
+                    // Search by last message content
+                    thread.lastMessage?.contains(query, ignoreCase = true) == true
+                }
+
+                val conversations = filtered.map { ConversationUiItem.fromThread(it) }
+                _uiState.update {
+                    it.copy(
+                        conversations = conversations,
+                        searchQuery = query,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Error searching conversations")
+                _uiState.update { it.copy(error = "Search failed") }
+            }
+        }
+    }
+
+    /**
      * Clear error message
      */
     fun clearError() {

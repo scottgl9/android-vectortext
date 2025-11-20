@@ -26,6 +26,7 @@ import com.vanespark.vertext.ui.components.AppNavigationDrawer
 import com.vanespark.vertext.ui.compose.NewChatScreen
 import com.vanespark.vertext.ui.conversations.ConversationListScreen
 import com.vanespark.vertext.ui.permissions.PermissionsScreen
+import com.vanespark.vertext.ui.search.SearchScreen
 import com.vanespark.vertext.ui.sync.SyncScreen
 import com.vanespark.vertext.ui.theme.VectorTextTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -70,6 +71,7 @@ class MainActivity : ComponentActivity() {
                     var isCheckingSync by remember { mutableStateOf(true) }
                     var currentThreadId by remember { mutableStateOf<Long?>(null) }
                     var showNewChat by remember { mutableStateOf(false) }
+                    var showSearch by remember { mutableStateOf(false) }
                     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
                     // Check if initial sync is complete
@@ -111,6 +113,7 @@ class MainActivity : ComponentActivity() {
                                     Timber.d("Navigate to conversations")
                                     currentThreadId = null
                                     showNewChat = false
+                                    showSearch = false
                                 },
                                 onNavigateToArchived = {
                                     Timber.d("Navigate to archived")
@@ -130,6 +133,18 @@ class MainActivity : ComponentActivity() {
                                 }
                             ) {
                                 when {
+                                    showSearch -> {
+                                        // Search screen
+                                        SearchScreen(
+                                            onNavigateBack = {
+                                                showSearch = false
+                                            },
+                                            onConversationClick = { threadId ->
+                                                showSearch = false
+                                                currentThreadId = threadId
+                                            }
+                                        )
+                                    }
                                     showNewChat -> {
                                         // New chat screen
                                         NewChatScreen(
@@ -172,7 +187,7 @@ class MainActivity : ComponentActivity() {
                                             },
                                             onSearchClick = {
                                                 Timber.d("Search clicked")
-                                                // TODO: Navigate to search screen
+                                                showSearch = true
                                             },
                                             onMenuClick = {
                                                 Timber.d("Menu clicked")

@@ -10,6 +10,13 @@
     <string name="archived">Archived</string>
     <string name="blocked">Blocked</string>
 
+    <!-- Search -->
+    <string name="search_conversations">Search conversations</string>
+    <string name="search_hint">Search by contact name or message content</string>
+    <string name="clear_search">Clear search</string>
+    <string name="no_results">No results found</string>
+    <string name="no_results_hint">Try a different search term</string>
+
     <!-- Conversation List -->
     <string name="no_conversations">No conversations yet</string>
     <string name="no_conversations_subtitle">Start a new conversation to begin messaging</string>

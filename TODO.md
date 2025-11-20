@@ -577,4 +577,188 @@
 
 ---
 
-*Legend: ✨ = UI/UX heavy, 🔍 = Search/AI, 🛠️ = Developer tools, 🤖 = AI features, 🧠 = Advanced ML*
+## Future Enhancements & Feature Ideas 🚀
+
+### Contact Integration
+- [ ] Implement contact name resolution from Android Contacts Provider
+  - Query ContactsContract for phone numbers
+  - Display contact names instead of phone numbers in conversation list
+  - Show contact photos as avatars
+  - Auto-update contact names when changed
+  - Handle multiple phone numbers for same contact
+  - Fallback to phone number when contact not found
+
+### Conversation Organization
+- [ ] Add folder/category system for organizing conversations
+  - Create custom folders (Work, Family, Friends, Projects, etc.)
+  - Assign conversations to folders
+  - Multi-select conversations for batch folder assignment
+  - Folder-based filtering in conversation list
+  - Color-coded folders with custom icons
+  - Nested folder support
+  - Quick folder switcher in navigation drawer
+  - Conversation can belong to multiple folders (tags system)
+
+- [ ] Implement smart folder suggestions
+  - Auto-suggest folders based on contact groups
+  - ML-based categorization (Personal, Work, Promotions)
+  - Frequency-based folder recommendations
+  - Time-based folders (Recent, This Week, This Month)
+
+### Advanced Search Features
+- [ ] Implement full-text search with highlighting
+  - Search message content, contact names, phone numbers
+  - Highlight search terms in results
+  - Search filters (date range, sender, media type)
+  - Search history with autocomplete
+  - Save search queries as smart folders
+  - Regular expression support for power users
+
+- [ ] Add search operators
+  - `from:contact` - Messages from specific contact
+  - `to:contact` - Messages to specific contact
+  - `has:media` - Messages with attachments
+  - `before:date` - Messages before date
+  - `after:date` - Messages after date
+  - `in:folder` - Messages in specific folder
+
+### Enhanced Contact Features
+- [ ] Rich contact profiles
+  - View full conversation history
+  - Important messages bookmarked
+  - Contact notes and reminders
+  - Relationship insights (first message date, frequency)
+  - Contact birthday tracking
+  - Last contacted indicator
+  - Contact-specific notification settings
+  - Quick actions (call, video call, email)
+
+### Message Organization
+- [ ] Implement message bookmarking/starring
+  - Star important messages
+  - Starred messages view
+  - Search within starred messages
+  - Export starred messages
+
+- [ ] Add message labels/tags
+  - Custom labels for messages
+  - Color-coded labels
+  - Label-based filtering
+  - Quick label selector
+
+### Productivity Features
+- [ ] Schedule messages for later sending
+  - Date/time picker for scheduled send
+  - View scheduled messages
+  - Edit/cancel scheduled messages
+  - Timezone awareness
+
+- [ ] Message templates/quick replies
+  - Save frequently used messages
+  - Template categories
+  - Variables in templates (name, date, time)
+  - Quick access from compose screen
+
+- [ ] Draft messages
+  - Auto-save drafts while typing
+  - Draft indicator in conversation list
+  - Resume drafts when reopening conversation
+  - Draft sync across devices (future)
+
+### Media & Attachments
+- [ ] Enhanced media viewer
+  - Full-screen image viewer with zoom
+  - Video player with controls
+  - Media gallery view (all images from conversation)
+  - Save media to device
+  - Share media to other apps
+  - Edit images before sending
+
+- [ ] Rich media support
+  - GIF support
+  - Audio message recording
+  - Voice note playback
+  - Document attachments (PDF, etc.)
+  - Location sharing
+  - Contact card sharing
+
+### Import/Export & Backup
+- [ ] Advanced backup features
+  - Automatic backup scheduling
+  - Cloud backup options (Google Drive, Dropbox)
+  - Incremental backups
+  - Selective backup (specific conversations/folders)
+  - Backup encryption with password
+
+- [ ] Import from other messaging apps
+  - Import from Google Messages
+  - Import from Signal backup
+  - Import from WhatsApp backup
+  - CSV import for bulk messages
+
+- [ ] Export conversations
+  - Export as PDF with formatting
+  - Export as HTML
+  - Export as plain text
+  - Export specific date ranges
+  - Include/exclude media
+
+### Themes & Customization
+- [ ] Advanced theme customization
+  - Custom color palettes
+  - Per-conversation themes
+  - Bubble shape customization
+  - Font size settings
+  - Compact/comfortable/spacious density options
+  - Chat wallpapers
+  - Animated backgrounds
+
+### Notification Enhancements
+- [ ] Smart notifications
+  - Contact-specific notification sounds
+  - Folder-specific notification settings
+  - Quiet hours with scheduling
+  - Priority notifications for important contacts
+  - Smart notification grouping
+  - Quick reply from notification
+  - Snooze notifications
+
+### Privacy & Security
+- [ ] Enhanced privacy features
+  - Hide message content in notifications
+  - App lock with PIN/biometric
+  - Hide specific conversations
+  - Private conversations with separate unlock
+  - Screenshot prevention (optional)
+  - Self-destructing messages (local only)
+
+### Performance & Technical
+- [ ] Performance optimizations
+  - Lazy loading for large conversations
+  - Image caching and optimization
+  - Database query optimization
+  - Memory usage reduction
+  - Battery optimization
+  - Storage management (auto-cleanup old media)
+
+### Accessibility
+- [ ] Accessibility improvements
+  - Screen reader optimization
+  - Voice control integration
+  - High contrast themes
+  - Font scaling support
+  - Keyboard navigation
+  - Reduced motion option
+
+### Developer Features
+- [ ] MCP server enhancements
+  - Add more tool capabilities
+  - Webhook support for real-time updates
+  - API documentation
+  - Example client implementations
+  - Rate limiting and authentication
+  - Batch operations support
+
+---
+
+*Legend: ✨ = UI/UX heavy, 🔍 = Search/AI, 🛠️ = Developer tools, 🤖 = AI features, 🧠 = Advanced ML, 🚀 = Future enhancements*

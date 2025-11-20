@@ -55,6 +55,10 @@ class ThreadRepository @Inject constructor(
         return threadDao.getAllThreads()
     }
 
+    suspend fun getAllThreadsSnapshot(): List<Thread> {
+        return threadDao.getThreadsLimit(Int.MAX_VALUE)
+    }
+
     suspend fun getThreadsLimit(limit: Int): List<Thread> {
         return threadDao.getThreadsLimit(limit)
     }
