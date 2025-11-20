@@ -261,17 +261,21 @@
   - Handle filters
   - Track search history
 
-### Index Management UI
-- [ ] Add indexing status to settings
-  - Show total messages indexed
-  - Indexing progress indicator
-  - Last indexed timestamp
-  - Force re-index button
+### Index Management UI ✅
+- [x] Add indexing status to settings
+  - Show total messages indexed (X of Y messages)
+  - Indexing progress indicator (real-time with WorkManager)
+  - Last indexed timestamp (relative time formatting)
+  - Force re-index button (triggers EmbeddingGenerationWorker)
+  - Beautiful Material You card design
+  - Auto-refresh on completion
 
-- [ ] Create background sync indicator
-  - Subtle notification when indexing
-  - Don't interrupt user
-  - Battery-aware scheduling
+- [x] Create background sync indicator
+  - Foreground notification when indexing
+  - Low priority, silent (doesn't interrupt user)
+  - Progress bar with percentage
+  - Battery-aware (low importance notification)
+  - Auto-dismisses on completion
 
 ### Testing
 - [ ] Unit tests for TextEmbeddingService
@@ -291,7 +295,7 @@
 
 ---
 
-## Phase 3 — MCP Server + Developer Experience 🛠️ [COMPLETED]
+## Phase 3 — MCP Server + Developer Experience 🛠️ [COMPLETED] ✅
 
 ### MCP Server Core ✅
 - [x] Implement BuiltInMcpServer class
@@ -334,11 +338,11 @@
   - Return thread list with metadata
   - Formatted with recipient info and message counts
 
-- [ ] Implement get_thread_summary tool
-  - ThreadSummaryTool class
-  - Parameters: thread_id
-  - Generate summary (placeholder for now)
-  - Return formatted summary
+- [x] Implement get_thread_summary tool
+  - GetThreadSummaryTool class
+  - Parameters: thread_id, max_messages, include_excerpts
+  - Generate statistical summary with message counts and excerpts
+  - Return formatted summary with date range and analytics
 
 ### MCP Server Integration ✅
 - [x] Create MCP service layer

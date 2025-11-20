@@ -3,6 +3,11 @@ package com.vanespark.vertext.ui.settings
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import com.vanespark.vertext.data.repository.MessageRepository
+import com.vanespark.vertext.domain.worker.EmbeddingGenerationWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,6 +34,12 @@ data class SettingsUiState(
     val showDeliveryReports: Boolean = true,
     val showContactNames: Boolean = true,
 
+    // Search & Indexing
+    val embeddedMessageCount: Int = 0,
+    val totalMessageCount: Int = 0,
+    val indexingProgress: Float? = null, // null when not indexing, 0.0-1.0 when indexing
+    val lastIndexedTimestamp: Long? = null,
+
     // About
     val appVersion: String = "1.0.0",
 
@@ -43,15 +54,19 @@ data class SettingsUiState(
  */
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val messageRepository: MessageRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
+    private val workManager = WorkManager.getInstance(context)
+
     init {
         loadSettings()
         loadAppVersion()
+        loadIndexingStats()
     }
 
     /**
@@ -240,6 +255,104 @@ class SettingsViewModel @Inject constructor(
                 Timber.d("Cache cleared")
             } catch (e: Exception) {
                 Timber.e(e, "Failed to clear cache")
+            }
+        }
+    }
+
+    /**
+     * Load indexing statistics
+     */
+    private fun loadIndexingStats() {
+        viewModelScope.launch {
+            try {
+                val embeddedCount = messageRepository.getEmbeddedMessageCount()
+                val totalCount = messageRepository.getTotalMessageCount()
+
+                // Load last indexed timestamp from SharedPreferences
+                val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+                val lastIndexed = prefs.getLong("last_indexed_timestamp", 0L)
+
+                _uiState.update {
+                    it.copy(
+                        embeddedMessageCount = embeddedCount,
+                        totalMessageCount = totalCount,
+                        lastIndexedTimestamp = if (lastIndexed > 0) lastIndexed else null
+                    )
+                }
+
+                Timber.d("Indexing stats loaded: $embeddedCount/$totalCount messages indexed")
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to load indexing stats")
+            }
+        }
+    }
+
+    /**
+     * Refresh indexing statistics
+     */
+    fun refreshIndexingStats() {
+        loadIndexingStats()
+    }
+
+    /**
+     * Trigger re-indexing of all messages
+     */
+    fun triggerReindexing() {
+        viewModelScope.launch {
+            try {
+                Timber.d("Triggering re-indexing of all messages")
+
+                val workRequest = OneTimeWorkRequestBuilder<EmbeddingGenerationWorker>()
+                    .addTag("embedding_generation")
+                    .build()
+
+                workManager.enqueue(workRequest)
+
+                // Observe work progress
+                workManager.getWorkInfoByIdFlow(workRequest.id).collect { workInfo ->
+                    when (workInfo?.state) {
+                        WorkInfo.State.RUNNING -> {
+                            val progress = workInfo.progress
+                            val processedCount = progress.getInt("processed", 0)
+                            val totalCount = progress.getInt("total", 1)
+                            val progressPercent = if (totalCount > 0) {
+                                processedCount.toFloat() / totalCount
+                            } else 0f
+
+                            _uiState.update {
+                                it.copy(indexingProgress = progressPercent)
+                            }
+                        }
+                        WorkInfo.State.SUCCEEDED -> {
+                            // Update last indexed timestamp
+                            val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+                            prefs.edit().putLong("last_indexed_timestamp", System.currentTimeMillis()).apply()
+
+                            _uiState.update {
+                                it.copy(
+                                    indexingProgress = null,
+                                    lastIndexedTimestamp = System.currentTimeMillis()
+                                )
+                            }
+                            loadIndexingStats()
+                            Timber.d("Re-indexing completed successfully")
+                        }
+                        WorkInfo.State.FAILED, WorkInfo.State.CANCELLED -> {
+                            _uiState.update {
+                                it.copy(indexingProgress = null)
+                            }
+                            Timber.e("Re-indexing failed or was cancelled")
+                        }
+                        else -> {
+                            // ENQUEUED, BLOCKED - do nothing yet
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to trigger re-indexing")
+                _uiState.update {
+                    it.copy(indexingProgress = null)
+                }
             }
         }
     }

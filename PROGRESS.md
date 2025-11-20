@@ -942,3 +942,77 @@ This document tracks completed tasks, implementation decisions, and challenges e
 
 *Progress tracking complete through Phase 2 implementation*
 
+### [2025-11-20 20:30] - Phase 3 MCP Tool Completion & Indexing UI
+- **Task**: Completed remaining Phase 3 tasks - get_thread_summary tool, indexing status UI, and background notifications
+- **Implemented**:
+  - **get_thread_summary MCP Tool**:
+    - `GetThreadSummaryTool.kt` for generating thread summaries
+    - Parameters: thread_id (required), max_messages (default 1000), include_excerpts (default true)
+    - Statistical summary with message counts, date ranges, sent/received breakdown
+    - Message excerpts with first/last messages
+    - Time span analysis with average messages per day
+    - Registered as 5th tool in MCP server (updated from 4 to 5)
+
+  - **Indexing Status in Settings**:
+    - Added indexing fields to `SettingsUiState`:
+      - `embeddedMessageCount` - count of indexed messages
+      - `totalMessageCount` - total messages
+      - `indexingProgress` - real-time progress (0.0-1.0 or null)
+      - `lastIndexedTimestamp` - last completion time
+    - `IndexingStatusItem` composable with Material You design:
+      - Progress card showing "X of Y messages indexed (Z%)"
+      - Real-time linear progress bar during indexing
+      - Relative timestamp ("2 hours ago", "Just now", etc.)
+      - Refresh button to reload stats
+      - "Reindex Messages" button to trigger re-indexing
+    - ViewModel integration with MessageRepository
+    - WorkManager integration to observe embedding generation progress
+    - Auto-refresh stats after completion
+    - Persists last indexed timestamp to SharedPreferences
+
+  - **Background Sync Indicator**:
+    - Updated `EmbeddingGenerationWorker` with foreground notification
+    - Created notification channel: "Message Indexing" (low priority)
+    - Foreground notification showing:
+      - Title: "Indexing messages for search"
+      - Progress: "X of Y messages (Z%)"
+      - Progress bar with determinate progress
+      - Silent, non-intrusive (IMPORTANCE_LOW)
+      - No badge, ongoing notification
+    - Updates every 10 messages during indexing
+    - Auto-dismisses on completion
+
+- **Files Created**:
+  - `domain/mcp/tools/GetThreadSummaryTool.kt` (192 lines)
+
+- **Files Modified**:
+  - `di/McpModule.kt` - Registered GetThreadSummaryTool (5 tools total)
+  - `ui/settings/SettingsViewModel.kt` - Added indexing stats, WorkManager integration
+  - `ui/settings/SettingsScreen.kt` - Added "Search & Indexing" section with IndexingStatusItem
+  - `domain/worker/EmbeddingGenerationWorker.kt` - Added foreground notification
+
+- **Design Features**:
+  - Material You card design for indexing status
+  - Real-time progress updates via WorkManager
+  - Non-intrusive background notification
+  - Battery-friendly (low priority, silent)
+  - Responsive UI updates without polling
+
+- **Build Status**: ✅ Build successful
+- **Testing**: ✅ Installed on Samsung Galaxy Z Fold6
+
+- **Phase 3 Status**: **COMPLETED** ✅
+  - ✅ MCP Server Core implemented
+  - ✅ 5 MCP tools implemented (list_threads, list_messages, send_message, search_messages, get_thread_summary)
+  - ✅ Indexing status in settings
+  - ✅ Background sync indicator
+
+- **Next Steps**:
+  - Begin Phase 4: AI Features (Thread summaries, smart categories, AI assistant)
+  - Write unit tests for Phase 2 & 3 services
+  - Consider adding developer/debug settings screen for MCP server status
+
+---
+
+*All Phase 3 tasks completed*
+

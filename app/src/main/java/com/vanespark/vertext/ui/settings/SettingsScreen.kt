@@ -124,6 +124,21 @@ fun SettingsScreen(
                 )
             }
 
+            // Search & Indexing
+            item {
+                SettingsSectionHeader(text = "Search & Indexing")
+            }
+            item {
+                IndexingStatusItem(
+                    embeddedCount = uiState.embeddedMessageCount,
+                    totalCount = uiState.totalMessageCount,
+                    indexingProgress = uiState.indexingProgress,
+                    lastIndexed = uiState.lastIndexedTimestamp,
+                    onRefresh = { viewModel.refreshIndexingStats() },
+                    onReindex = { viewModel.triggerReindexing() }
+                )
+            }
+
             // Storage & Backup
             item {
                 SettingsSectionHeader(text = "Storage & Backup")
@@ -398,6 +413,131 @@ private fun RestoreDialog(
             }
         }
     )
+}
+
+/**
+ * Indexing status item showing embedding statistics
+ */
+@Composable
+private fun IndexingStatusItem(
+    embeddedCount: Int,
+    totalCount: Int,
+    indexingProgress: Float?,
+    lastIndexed: Long?,
+    onRefresh: () -> Unit,
+    onReindex: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "Message Indexing",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                IconButton(onClick = onRefresh) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "Refresh stats"
+                    )
+                }
+            }
+
+            // Stats
+            val percentage = if (totalCount > 0) {
+                (embeddedCount.toFloat() / totalCount * 100).toInt()
+            } else 0
+
+            Text(
+                text = "$embeddedCount of $totalCount messages indexed ($percentage%)",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            // Progress bar if indexing
+            if (indexingProgress != null) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    LinearProgressIndicator(
+                        progress = { indexingProgress },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text(
+                        text = "Indexing... ${(indexingProgress * 100).toInt()}%",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            // Last indexed timestamp
+            if (lastIndexed != null && indexingProgress == null) {
+                val timeAgo = formatTimeAgo(lastIndexed)
+                Text(
+                    text = "Last indexed: $timeAgo",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // Reindex button
+            FilledTonalButton(
+                onClick = onReindex,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = indexingProgress == null
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Sync,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(if (indexingProgress != null) "Indexing..." else "Reindex Messages")
+            }
+        }
+    }
+}
+
+/**
+ * Format timestamp as relative time
+ */
+private fun formatTimeAgo(timestamp: Long): String {
+    val now = System.currentTimeMillis()
+    val diff = now - timestamp
+
+    return when {
+        diff < 60_000 -> "Just now"
+        diff < 3600_000 -> "${diff / 60_000} minutes ago"
+        diff < 86400_000 -> "${diff / 3600_000} hours ago"
+        diff < 604800_000 -> "${diff / 86400_000} days ago"
+        else -> {
+            val date = java.text.SimpleDateFormat("MMM d, yyyy", java.util.Locale.US)
+                .format(java.util.Date(timestamp))
+            date
+        }
+    }
 }
 
 /**

@@ -1,10 +1,16 @@
 package com.vanespark.vertext.domain.worker
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import android.os.Build
+import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.vanespark.vertext.R
 import com.vanespark.vertext.data.repository.MessageRepository
 import com.vanespark.vertext.domain.service.TextEmbeddingService
 import dagger.assisted.Assisted
@@ -33,11 +39,18 @@ class EmbeddingGenerationWorker @AssistedInject constructor(
         const val KEY_PROCESSED = "processed"
         const val KEY_TOTAL = "total"
         const val KEY_MESSAGE = "message"
+
+        private const val NOTIFICATION_ID = 1001
+        private const val CHANNEL_ID = "embedding_generation"
+        private const val CHANNEL_NAME = "Message Indexing"
     }
 
     override suspend fun doWork(): Result {
         return try {
             Timber.d("Starting embedding generation worker")
+
+            // Create notification channel (no-op on Android < 8.0)
+            createNotificationChannel()
 
             // Get all messages that need embeddings
             val messagesToEmbed = messageRepository.getMessagesNeedingEmbedding(Int.MAX_VALUE)
@@ -49,6 +62,9 @@ class EmbeddingGenerationWorker @AssistedInject constructor(
             }
 
             Timber.d("Found $totalMessages messages needing embeddings")
+
+            // Set foreground to show notification
+            setForeground(createForegroundInfo(0, totalMessages))
 
             // Update corpus with all message bodies for IDF calculation
             val allMessages = messageRepository.getAllMessagesSnapshot()
@@ -95,6 +111,8 @@ class EmbeddingGenerationWorker @AssistedInject constructor(
                                     KEY_MESSAGE to "Indexed $processedCount / $totalMessages messages"
                                 )
                             )
+                            // Update foreground notification
+                            setForeground(createForegroundInfo(processedCount, totalMessages))
                         }
                     } catch (e: Exception) {
                         Timber.e(e, "Failed to generate embedding for message ${message.id}")
@@ -131,5 +149,45 @@ class EmbeddingGenerationWorker @AssistedInject constructor(
                 )
             )
         }
+    }
+
+    /**
+     * Create notification channel for embedding generation notifications
+     * Required for Android 8.0+
+     */
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Shows progress when indexing messages for search"
+                setShowBadge(false)
+            }
+
+            val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
+    /**
+     * Create foreground info with notification showing indexing progress
+     */
+    private fun createForegroundInfo(processed: Int, total: Int): ForegroundInfo {
+        val percentage = if (total > 0) (processed * 100 / total) else 0
+
+        val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
+            .setContentTitle("Indexing messages for search")
+            .setContentText("$processed of $total messages ($percentage%)")
+            .setSmallIcon(R.drawable.ic_launcher_foreground) // You may want to create a custom icon
+            .setProgress(total, processed, false)
+            .setOngoing(true)
+            .setSilent(true) // Don't make sound
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setCategory(NotificationCompat.CATEGORY_PROGRESS)
+            .build()
+
+        return ForegroundInfo(NOTIFICATION_ID, notification)
     }
 }

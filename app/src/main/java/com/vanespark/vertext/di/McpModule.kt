@@ -3,6 +3,7 @@ package com.vanespark.vertext.di
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.vanespark.vertext.domain.mcp.BuiltInMcpServer
+import com.vanespark.vertext.domain.mcp.tools.GetThreadSummaryTool
 import com.vanespark.vertext.domain.mcp.tools.ListMessagesTool
 import com.vanespark.vertext.domain.mcp.tools.ListThreadsTool
 import com.vanespark.vertext.domain.mcp.tools.SearchMessagesTool
@@ -36,7 +37,8 @@ object McpModule {
         listThreadsTool: ListThreadsTool,
         listMessagesTool: ListMessagesTool,
         sendMessageTool: SendMessageTool,
-        searchMessagesTool: SearchMessagesTool
+        searchMessagesTool: SearchMessagesTool,
+        getThreadSummaryTool: GetThreadSummaryTool
     ): BuiltInMcpServer {
         val server = BuiltInMcpServer(gson)
 
@@ -45,8 +47,9 @@ object McpModule {
         server.registerTool(listMessagesTool)
         server.registerTool(sendMessageTool)
         server.registerTool(searchMessagesTool)
+        server.registerTool(getThreadSummaryTool)
 
-        Timber.d("MCP Server initialized with 4 tools")
+        Timber.d("MCP Server initialized with 5 tools")
         Timber.d("Server URL: ${BuiltInMcpServer.BUILTIN_SERVER_URL}")
 
         return server
