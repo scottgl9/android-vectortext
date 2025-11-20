@@ -142,18 +142,18 @@ fun RulesScreen(
             )
         }
 
-        // Rule editor dialog (placeholder)
+        // Rule editor dialog
         if (uiState.showEditor) {
-            AlertDialog(
-                onDismissRequest = { viewModel.hideEditor() },
-                title = { Text(if (uiState.selectedRule == null) "New Rule" else "Edit Rule") },
-                text = {
-                    Text("Rule builder UI coming soon!\n\nFor now, rules can be created programmatically through the RuleRepository.")
-                },
-                confirmButton = {
-                    TextButton(onClick = { viewModel.hideEditor() }) {
-                        Text("OK")
+            RuleEditorDialog(
+                rule = uiState.selectedRule,
+                onDismiss = { viewModel.hideEditor() },
+                onSave = { rule ->
+                    if (rule.id == 0L) {
+                        viewModel.createRule(rule)
+                    } else {
+                        viewModel.updateRule(rule)
                     }
+                    viewModel.hideEditor()
                 }
             )
         }
