@@ -1272,3 +1272,104 @@ This document tracks completed tasks, implementation decisions, and challenges e
 
 *Encrypted Backup system complete - Phase 5 in progress*
 
+
+### [2025-11-20 23:30] - Automation Rules UI & SmsReceiver Integration
+- **Task**: Built complete Rules management UI and integrated RuleEngine into message flow
+- **Implemented**:
+  - RulesViewModel with full state management
+    - Load all rules, load enabled rules
+    - Create, update, delete operations
+    - Toggle enabled/disabled state
+    - Statistics tracking (trigger count, last triggered)
+    - Success/error message handling with auto-clear
+  - RulesScreen with Material You design (472 lines)
+    - Empty state with icon and helpful message
+    - Loading state with CircularProgressIndicator
+    - Rules list with expandable cards
+    - Rule card showing name, description, enabled switch
+    - Expandable details: triggers, conditions, actions
+    - Statistics display (trigger count, last triggered timestamp)
+    - Edit and Delete action buttons
+    - Delete confirmation dialog
+    - FloatingActionButton for new rules
+    - Placeholder editor dialog (builder UI coming later)
+  - SmsReceiver integration for automatic rule processing
+    - Injected RuleEngine into SmsReceiver
+    - Process messages through rule engine after insertion
+    - Error handling to prevent message reception failures
+    - Logging for rule processing
+  - Navigation integration
+    - Added Rules route to MainActivity
+    - Added "Automation Rules" item to Settings
+    - Full navigation flow: Settings → Rules → Back
+    - State management for navigation
+
+- **Files Changed**:
+  - Created: `app/src/main/java/com/vanespark/vertext/ui/rules/RulesScreen.kt` (472 lines)
+  - Created: `app/src/main/java/com/vanespark/vertext/ui/rules/RulesViewModel.kt` (219 lines)
+  - Modified: `app/src/main/java/com/vanespark/vertext/data/receiver/SmsReceiver.kt` (+13 lines)
+  - Modified: `app/src/main/java/com/vanespark/vertext/ui/MainActivity.kt` (+14 lines)
+  - Modified: `app/src/main/java/com/vanespark/vertext/ui/settings/SettingsScreen.kt` (+9 lines)
+  - Total: 727 insertions across 5 files
+
+- **UI Features**:
+  - Rule cards with visual hierarchy
+  - Color-coded enabled/disabled states
+  - Expandable/collapsible rule details
+  - Icon-based statistics display
+  - Formatted timestamps (MMM dd, HH:mm)
+  - Material You color scheme
+  - Snackbar notifications for success/error
+  - Smooth animations and transitions
+
+- **Rule Display**:
+  - Trigger formatting: Always, FromSender, ContainsKeyword, TimeRange, DaysOfWeek
+  - Condition formatting: IsUnread, MatchesPattern, SenderInContacts, etc.
+  - Action formatting: AutoReply, SetCategory, MarkAsRead, Archive, etc.
+  - Human-readable text for all rule components
+  - Bullet-point lists for multiple items
+
+- **Integration Architecture**:
+  - SmsReceiver → RuleEngine.processMessage()
+  - Called after message insertion (has valid ID)
+  - Triggered for all incoming SMS messages
+  - Non-blocking error handling (try-catch)
+  - Rules processed in background (coroutine scope)
+
+- **Challenges Encountered**:
+  - Smart cast error with nullable strings in Snackbar
+    - Issue: Kotlin can't smart cast delegated properties (uiState.error)
+    - Solution: Used `?.let { }` pattern instead of null check
+    - Changed from `if (uiState.error != null) { Text(uiState.error) }`
+    - To: `uiState.error?.let { error -> Text(error) }`
+
+- **Build Status**: ✅ Build successful
+  - Minor deprecation warnings for Divider (should use HorizontalDivider)
+  - All compilation errors resolved
+  - APK generated successfully
+
+- **Testing**: ✅ Installed on Samsung Galaxy Z Fold6
+  - App starts successfully
+  - Rules screen accessible from Settings
+  - Empty state displays correctly
+  - Ready for actual rule testing
+
+- **Commit**: cb98fb6
+
+- **Phase 5 Progress**:
+  - ✅ Encrypted Backup (completed)
+  - ✅ Automations (Rules Engine backend & UI) - completed
+  - ⏳ Rule Builder UI (placeholder currently)
+  - ⏳ AI-Enhanced Contact Profiles - pending
+  - ⏳ Final Polish Pass - pending
+
+- **Next Steps**:
+  - Build visual rule builder/editor UI
+  - Test actual rule execution with real messages
+  - Create sample rules for common use cases
+  - Add rule templates/presets
+  - Performance testing with many rules
+
+---
+
+*Automation Rules UI complete - Phase 5 automation system functional*
