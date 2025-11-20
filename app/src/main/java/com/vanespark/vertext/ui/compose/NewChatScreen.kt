@@ -17,7 +17,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.vanespark.vertext.R
+import com.vanespark.vertext.domain.service.ContactInfo
 
 /**
  * Screen for creating a new conversation
@@ -28,10 +30,27 @@ import com.vanespark.vertext.R
 fun NewChatScreen(
     onNavigateBack: () -> Unit,
     onContactSelected: (String, String?) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: NewChatViewModel = hiltViewModel()
 ) {
     var phoneNumber by remember { mutableStateOf(TextFieldValue("")) }
     var searchQuery by remember { mutableStateOf("") }
+    val contacts by viewModel.contacts.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
+    // Load contacts when screen appears
+    LaunchedEffect(Unit) {
+        viewModel.loadContacts()
+    }
+
+    // Search contacts when query changes
+    LaunchedEffect(searchQuery) {
+        if (searchQuery.isNotEmpty()) {
+            viewModel.searchContacts(searchQuery)
+        } else {
+            viewModel.loadContacts()
+        }
+    }
 
     // Handle back button press
     BackHandler(onBack = onNavigateBack)
@@ -92,11 +111,12 @@ fun NewChatScreen(
 
             HorizontalDivider()
 
-            // Contacts list (placeholder for now)
+            // Contacts list
             ContactsList(
-                searchQuery = searchQuery,
-                onContactClick = { phone, name ->
-                    onContactSelected(phone, name)
+                contacts = contacts,
+                isLoading = isLoading,
+                onContactClick = { contact ->
+                    onContactSelected(contact.phoneNumber, contact.name)
                 },
                 modifier = Modifier
                     .fillMaxSize()
@@ -108,48 +128,94 @@ fun NewChatScreen(
 
 @Composable
 private fun ContactsList(
-    searchQuery: String,
-    onContactClick: (String, String?) -> Unit,
+    contacts: List<ContactInfo>,
+    isLoading: Boolean,
+    onContactClick: (ContactInfo) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Placeholder - In a real implementation, this would query the Contacts provider
-    // For now, show a message that contacts integration is coming
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(32.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = stringResource(R.string.enter_phone_number),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = "Enter a phone number above to start a new conversation",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+    when {
+        isLoading -> {
+            Box(
+                modifier = modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+        contacts.isEmpty() -> {
+            // Empty state
+            Box(
+                modifier = modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.padding(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = stringResource(R.string.no_contacts),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = stringResource(R.string.enter_phone_number),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+        else -> {
+            // Show contacts list
+            LazyColumn(
+                modifier = modifier,
+                contentPadding = PaddingValues(vertical = 8.dp)
+            ) {
+                items(contacts) { contact ->
+                    ContactListItem(
+                        contact = contact,
+                        onClick = { onContactClick(contact) }
+                    )
+                }
+            }
         }
     }
 }
 
-/**
- * Data class for contact items
- * Will be used when contacts integration is implemented
- */
-data class ContactItem(
-    val id: String,
-    val name: String,
-    val phoneNumber: String,
-    val avatarUri: String? = null
-)
+@Composable
+private fun ContactListItem(
+    contact: ContactInfo,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    ListItem(
+        headlineContent = { Text(contact.name) },
+        supportingContent = { Text(contact.phoneNumber) },
+        leadingContent = {
+            Surface(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape),
+                color = MaterialTheme.colorScheme.primaryContainer
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = contact.name.firstOrNull()?.uppercase() ?: "?",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+        },
+        modifier = modifier.clickable(onClick = onClick)
+    )
+}

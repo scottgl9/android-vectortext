@@ -2,6 +2,7 @@ package com.vanespark.vertext.ui.sync
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.vanespark.vertext.domain.service.ContactSyncService
 import com.vanespark.vertext.domain.service.SmsSyncService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,7 +33,8 @@ data class SyncUiState(
  */
 @HiltViewModel
 class SyncViewModel @Inject constructor(
-    private val smsSyncService: SmsSyncService
+    private val smsSyncService: SmsSyncService,
+    private val contactSyncService: ContactSyncService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SyncUiState())
@@ -109,12 +111,38 @@ class SyncViewModel @Inject constructor(
                         SmsSyncService.SyncStep.COMPLETED -> {
                             _uiState.update {
                                 it.copy(
-                                    isComplete = true,
-                                    progress = 1.0f,
-                                    statusMessage = progress.message,
+                                    progress = 0.95f,
+                                    statusMessage = "Syncing contact names...",
                                     currentStep = progress.currentStep
                                 )
                             }
+
+                            // Sync contact names after SMS sync completes
+                            try {
+                                val updatedCount = contactSyncService.syncContactNamesForAllThreads()
+                                Timber.d("Contact sync completed: $updatedCount contacts updated")
+
+                                _uiState.update {
+                                    it.copy(
+                                        isComplete = true,
+                                        progress = 1.0f,
+                                        statusMessage = "Sync complete! $updatedCount contacts updated",
+                                        currentStep = progress.currentStep
+                                    )
+                                }
+                            } catch (e: Exception) {
+                                Timber.e(e, "Contact sync failed")
+                                // Still mark as complete since SMS sync succeeded
+                                _uiState.update {
+                                    it.copy(
+                                        isComplete = true,
+                                        progress = 1.0f,
+                                        statusMessage = progress.message,
+                                        currentStep = progress.currentStep
+                                    )
+                                }
+                            }
+
                             Timber.d("Sync completed successfully")
                         }
 
