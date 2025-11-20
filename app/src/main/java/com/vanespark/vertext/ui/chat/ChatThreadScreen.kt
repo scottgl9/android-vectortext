@@ -43,6 +43,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -90,6 +91,9 @@ fun ChatThreadScreen(
             listState.animateScrollToItem(uiState.messages.size - 1)
         }
     }
+
+    // Handle back button press
+    BackHandler(onBack = onNavigateBack)
 
     Scaffold(
         topBar = {
