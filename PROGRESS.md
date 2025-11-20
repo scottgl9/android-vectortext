@@ -77,4 +77,73 @@ This document tracks completed tasks, implementation decisions, and challenges e
 
 ---
 
+### [2025-11-19 23:45] - Database & Data Layer Implementation
+- **Task**: Implemented complete Room database schema with entities, DAOs, and repository layer
+- **Implemented**:
+  - **Data Models (Entities)**:
+    - `Message` entity with embedding fields for semantic search (TF-IDF support)
+    - `Thread` entity for conversation management
+    - `Contact` entity for contact information
+    - Proper indexes for performance optimization
+    - Foreign key relationships (Message → Thread)
+
+  - **DAOs (Data Access Objects)**:
+    - `MessageDao` with comprehensive CRUD operations, embedding management, and search
+    - `ThreadDao` for thread operations (pin, archive, mute, categories)
+    - `ContactDao` for contact management
+    - Optimized queries with Flow support for reactive UI updates
+    - Batched queries for semantic search (50 chunks per batch)
+
+  - **Repository Layer**:
+    - `MessageRepository` providing clean API for message operations
+    - `ThreadRepository` with convenience methods (getOrCreateThread)
+    - `ContactRepository` with sync capabilities
+    - All repositories injected via Hilt for DI
+
+  - **Database Configuration**:
+    - `VectorTextDatabase` Room database class
+    - Updated `DatabaseModule` with Hilt providers for database and DAOs
+    - Schema export enabled for version tracking
+
+- **Files Created**:
+  - `data/model/Message.kt` (124 lines)
+  - `data/model/Thread.kt` (71 lines)
+  - `data/model/Contact.kt` (43 lines)
+  - `data/dao/MessageDao.kt` (148 lines)
+  - `data/dao/ThreadDao.kt` (131 lines)
+  - `data/dao/ContactDao.kt` (75 lines)
+  - `data/database/VectorTextDatabase.kt` (29 lines)
+  - `data/repository/MessageRepository.kt` (177 lines)
+  - `data/repository/ThreadRepository.kt` (197 lines)
+  - `data/repository/ContactRepository.kt` (146 lines)
+
+- **Files Modified**:
+  - `di/DatabaseModule.kt` - Added Room database and DAO providers
+  - `VectorTextApplication.kt` - Fixed WorkManager configuration naming conflict
+  - `build.gradle.kts` - Downgraded Kotlin from 2.1.0 to 2.0.21 for Hilt compatibility
+
+- **Decisions Made**:
+  - Embedding stored as comma-separated string (384 floats) for simplicity and compatibility
+  - Embedding version field to support future neural model migration
+  - Foreign keys with CASCADE delete to maintain referential integrity
+  - Flow-based queries for reactive UI updates
+  - Batched embedding queries to avoid CursorWindow 2MB limit
+  - Repository pattern for clean separation of concerns
+
+- **Challenges**:
+  - Initial Kotlin 2.1.0 caused Hilt metadata compatibility issues
+  - Resolved by downgrading to Kotlin 2.0.21 (stable with Hilt 2.52)
+  - WorkManager configuration naming conflict resolved
+  - Package name typo in Contact.kt fixed
+
+- **Build Status**: ✅ Build successful (assembleDebug passes)
+
+- **Next Steps**:
+  - Implement SMS/MMS provider integration
+  - Create SMS receiver for incoming messages
+  - Implement message sending with SmsManager
+  - Begin UI implementation for conversation list
+
+---
+
 *Progress entries will be added as features are implemented*

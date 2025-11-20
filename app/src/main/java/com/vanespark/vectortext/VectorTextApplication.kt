@@ -15,7 +15,7 @@ import javax.inject.Inject
 class VectorTextApplication : Application(), Configuration.Provider {
 
     @Inject
-    lateinit var workManagerConfiguration: Configuration
+    lateinit var injectedWorkManagerConfiguration: Configuration
 
     override fun onCreate() {
         super.onCreate()
@@ -29,5 +29,5 @@ class VectorTextApplication : Application(), Configuration.Provider {
     }
 
     override val workManagerConfiguration: Configuration
-        get() = workManagerConfiguration
+        get() = injectedWorkManagerConfiguration
 }
