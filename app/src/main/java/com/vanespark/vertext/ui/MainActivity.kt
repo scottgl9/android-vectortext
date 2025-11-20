@@ -5,8 +5,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -15,10 +17,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
+import com.vanespark.vertext.data.repository.ThreadRepository
 import com.vanespark.vertext.domain.service.PermissionManager
 import com.vanespark.vertext.domain.service.SmsSyncService
 import com.vanespark.vertext.ui.chat.ChatThreadScreen
 import com.vanespark.vertext.ui.chat.ChatThreadViewModel
+import com.vanespark.vertext.ui.components.AppNavigationDrawer
+import com.vanespark.vertext.ui.compose.NewChatScreen
 import com.vanespark.vertext.ui.conversations.ConversationListScreen
 import com.vanespark.vertext.ui.permissions.PermissionsScreen
 import com.vanespark.vertext.ui.sync.SyncScreen
@@ -44,6 +49,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var chatThreadViewModelFactory: ChatThreadViewModel.Factory
 
+    @Inject
+    lateinit var threadRepository: ThreadRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -61,6 +69,8 @@ class MainActivity : ComponentActivity() {
                     var hasSynced by remember { mutableStateOf(false) }
                     var isCheckingSync by remember { mutableStateOf(true) }
                     var currentThreadId by remember { mutableStateOf<Long?>(null) }
+                    var showNewChat by remember { mutableStateOf(false) }
+                    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
                     // Check if initial sync is complete
                     LaunchedEffect(hasPermissions) {
@@ -92,36 +102,88 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
-                        hasPermissions && hasSynced && currentThreadId != null -> {
-                            // Chat thread screen
-                            ChatThreadScreen(
-                                threadId = currentThreadId!!,
-                                onNavigateBack = {
-                                    currentThreadId = null
-                                },
-                                viewModelFactory = chatThreadViewModelFactory
-                            )
-                        }
                         hasPermissions && hasSynced -> {
-                            // Conversation list screen
-                            ConversationListScreen(
-                                onConversationClick = { threadId ->
-                                    Timber.d("Conversation clicked: $threadId")
-                                    currentThreadId = threadId
+                            // Main app with navigation drawer
+                            AppNavigationDrawer(
+                                drawerState = drawerState,
+                                currentRoute = "conversations",
+                                onNavigateToConversations = {
+                                    Timber.d("Navigate to conversations")
+                                    currentThreadId = null
+                                    showNewChat = false
                                 },
-                                onNewMessageClick = {
-                                    Timber.d("New message clicked")
-                                    // TODO: Navigate to new message screen
+                                onNavigateToArchived = {
+                                    Timber.d("Navigate to archived")
+                                    // TODO: Implement archived conversations
                                 },
-                                onSearchClick = {
-                                    Timber.d("Search clicked")
-                                    // TODO: Navigate to search screen
+                                onNavigateToBlocked = {
+                                    Timber.d("Navigate to blocked")
+                                    // TODO: Implement blocked contacts
                                 },
-                                onMenuClick = {
-                                    Timber.d("Menu clicked")
-                                    // TODO: Show navigation drawer or menu
+                                onNavigateToSettings = {
+                                    Timber.d("Navigate to settings")
+                                    // TODO: Implement settings screen
+                                },
+                                onNavigateToAbout = {
+                                    Timber.d("Navigate to about")
+                                    // TODO: Implement about screen
                                 }
-                            )
+                            ) {
+                                when {
+                                    showNewChat -> {
+                                        // New chat screen
+                                        NewChatScreen(
+                                            onNavigateBack = {
+                                                showNewChat = false
+                                            },
+                                            onContactSelected = { phoneNumber, contactName ->
+                                                scope.launch {
+                                                    // Get or create thread for this recipient
+                                                    val thread = threadRepository.getOrCreateThread(
+                                                        recipient = phoneNumber,
+                                                        recipientName = contactName
+                                                    )
+                                                    showNewChat = false
+                                                    currentThreadId = thread.id
+                                                }
+                                            }
+                                        )
+                                    }
+                                    currentThreadId != null -> {
+                                        // Chat thread screen
+                                        ChatThreadScreen(
+                                            threadId = currentThreadId!!,
+                                            onNavigateBack = {
+                                                currentThreadId = null
+                                            },
+                                            viewModelFactory = chatThreadViewModelFactory
+                                        )
+                                    }
+                                    else -> {
+                                        // Conversation list screen
+                                        ConversationListScreen(
+                                            onConversationClick = { threadId ->
+                                                Timber.d("Conversation clicked: $threadId")
+                                                currentThreadId = threadId
+                                            },
+                                            onNewMessageClick = {
+                                                Timber.d("New message clicked")
+                                                showNewChat = true
+                                            },
+                                            onSearchClick = {
+                                                Timber.d("Search clicked")
+                                                // TODO: Navigate to search screen
+                                            },
+                                            onMenuClick = {
+                                                Timber.d("Menu clicked")
+                                                scope.launch {
+                                                    drawerState.open()
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }

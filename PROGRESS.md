@@ -633,4 +633,98 @@ This document tracks completed tasks, implementation decisions, and challenges e
 
 ---
 
+### [2025-11-20 12:52] - Navigation Drawer & New Chat Screen Implementation
+- **Task**: Implemented navigation drawer menu and new chat/compose screen functionality
+- **Implemented**:
+  - **Navigation Drawer Component**:
+    - `AppNavigationDrawer` composable with ModalNavigationDrawer
+    - Material You design with drawer sheet
+    - Navigation items: Conversations, Archived, Blocked, Settings, About
+    - Icon-based navigation with proper Material icons
+    - Selected state highlighting
+    - Auto-close drawer on item selection
+    - Coroutine-based drawer state management
+
+  - **New Chat Screen**:
+    - `NewChatScreen` for creating new conversations
+    - Phone number input field with validation
+    - "OK" button to confirm and create thread
+    - Contact search placeholder (ready for future contacts integration)
+    - BackHandler for proper back navigation
+    - Material You design with TopAppBar
+    - Empty state with icon and helpful message
+
+  - **MainActivity Integration**:
+    - Added drawer state management with `rememberDrawerState`
+    - Wrapped main content in `AppNavigationDrawer`
+    - Added `showNewChat` state for new chat screen
+    - Integrated `threadRepository.getOrCreateThread()` for new conversations
+    - Menu button opens drawer via `drawerState.open()`
+    - FAB button shows new chat screen
+    - Three-way navigation: Conversations ← → Chat Thread ← → New Chat
+    - BackHandler closes new chat screen
+
+- **Files Created**:
+  - `ui/components/NavigationDrawer.kt` (132 lines)
+  - `ui/compose/NewChatScreen.kt` (150 lines)
+
+- **Files Modified**:
+  - `ui/MainActivity.kt` - Added navigation drawer and new chat screen integration
+  - `res/values/strings.xml` - Added menu strings (about, archived, blocked) and compose strings (new_conversation, to, enter_phone_number, recent_contacts, all_contacts, no_contacts)
+
+- **Navigation Structure**:
+  ```
+  DrawerState (closed/open)
+  ├── Navigation Drawer (left side)
+  │   ├── Conversations (main)
+  │   ├── Archived
+  │   ├── Blocked
+  │   ├── Settings
+  │   └── About
+  └── Main Content Area
+      ├── Conversation List (default)
+      ├── Chat Thread (on conversation click)
+      └── New Chat Screen (on FAB click)
+  ```
+
+- **User Flows**:
+  1. **Open Menu**: Tap hamburger icon → Drawer slides open → Select item → Drawer closes
+  2. **New Chat**: Tap FAB → New chat screen → Enter phone → Tap OK → Thread created → Navigate to chat
+  3. **Back Navigation**: New chat back button → Return to conversations
+
+- **Design Features**:
+  - Material You drawer design with proper elevation
+  - HorizontalDivider separators between sections
+  - NavigationDrawerItemDefaults padding
+  - Selected state with color highlighting
+  - Icon + label layout for all items
+  - Proper spacing and typography
+  - Smooth drawer animations
+
+- **Architecture**:
+  - Simple state-based navigation (no Nav Controller needed yet)
+  - Drawer state managed by Compose
+  - CoroutineScope for async drawer operations
+  - Clean separation of UI components
+  - Repository integration for thread creation
+
+- **Build Status**: ✅ Build successful (minor deprecation warning for Icons.Filled.Message)
+
+- **Testing Results**:
+  - ✅ App builds and installs successfully
+  - ✅ Menu button triggers drawer open (logs confirm)
+  - ✅ FAB button triggers new chat screen (logs confirm)
+  - ✅ Back navigation working correctly
+  - ✅ No crashes or runtime errors
+
+- **Next Steps**:
+  - Implement contact picker integration (Android Contacts Provider)
+  - Add actual screens for Archived, Blocked, Settings, About
+  - Implement search functionality
+  - Add contact name resolution from Contacts
+  - Test new chat flow end-to-end with message sending
+  - Fix remaining deprecation warning (Icons.Filled.Message)
+
+---
+
 *Progress entries will be added as features are implemented*

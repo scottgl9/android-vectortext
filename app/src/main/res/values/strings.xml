@@ -6,6 +6,9 @@
     <string name="conversations">Conversations</string>
     <string name="search">Search</string>
     <string name="settings">Settings</string>
+    <string name="about">About</string>
+    <string name="archived">Archived</string>
+    <string name="blocked">Blocked</string>
 
     <!-- Conversation List -->
     <string name="no_conversations">No conversations yet</string>
@@ -49,6 +52,14 @@
     <string name="no_messages">No messages yet</string>
     <string name="send_first_message">Send your first message to start the conversation</string>
     <string name="type_message">Type a message</string>
+
+    <!-- New Chat / Compose -->
+    <string name="new_conversation">New Conversation</string>
+    <string name="to">To</string>
+    <string name="enter_phone_number">Enter phone number</string>
+    <string name="recent_contacts">Recent Contacts</string>
+    <string name="all_contacts">All Contacts</string>
+    <string name="no_contacts">No contacts found</string>
 
     <!-- Common -->
     <string name="cancel">Cancel</string>
