@@ -94,8 +94,15 @@ adb devices
    - Use LiveData or StateFlow for reactive data
    - Follow Material Design guidelines
    - Use proper dependency injection
-3. Add inline documentation for complex logic
-4. Ensure error handling is robust
+3. **IMPORTANT: Manage strings properly for translation support**
+   - Add all new user-facing strings to `app/src/main/res/values/strings.xml`
+   - UI strings (button labels, titles, error messages) → `strings.xml`
+   - Domain logic strings (LLM prompts, internal errors, logs) → Keep in code
+   - Use `stringResource(R.string.your_string_id)` in Composables
+   - Use `context.getString(R.string.your_string_id)` in Activities/Fragments
+   - Never hardcode user-facing text in Kotlin code
+4. Add inline documentation for complex logic
+5. Ensure error handling is robust
 
 #### Phase 3: Testing
 1. Create unit tests for business logic:
@@ -235,7 +242,8 @@ Before committing, verify:
 - [ ] Documentation is updated
 - [ ] No debug code left in
 - [ ] Resource files are properly organized
-- [ ] Strings are in resources (not hardcoded)
+- [ ] All user-facing strings are in `strings.xml` (not hardcoded in Kotlin)
+- [ ] Domain logic strings (prompts, logs) appropriately kept in code
 - [ ] Proper error handling exists
 - [ ] Edge cases are handled
 
