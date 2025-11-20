@@ -452,4 +452,105 @@ This document tracks completed tasks, implementation decisions, and challenges e
 
 ---
 
+### [2025-11-20 02:30] - Chat Thread UI Implementation
+- **Task**: Implemented complete chat thread screen with message viewing and composition
+- **Implemented**:
+  - **ChatThreadUiState & UI Models**:
+    - `ChatThreadUiState` data class for screen state management
+    - `MessageUiItem` UI model with grouping logic
+    - Message grouping by time proximity (2 min threshold)
+    - Relative timestamp formatting (time, date, full date)
+    - Dynamic bubble shape calculation based on group position
+    - First/last in group detection for visual styling
+
+  - **ChatThreadViewModel**:
+    - Assisted injection pattern for threadId parameter
+    - `@AssistedFactory` for dynamic ViewModel creation
+    - Flow-based message loading from repository
+    - Thread metadata loading (recipient name, phone)
+    - Message sending with error handling
+    - Message deletion with MessagingService integration
+    - Retry failed messages functionality
+    - Thread operations (archive, delete, mute)
+    - Auto-mark thread as read on open
+
+  - **MessageBubble Component**:
+    - Material You design with dynamic shapes
+    - Incoming/outgoing message styling
+    - Grouped message bubbles (consecutive messages)
+    - Date dividers for new day messages
+    - Failed/sending message indicators
+    - Timestamp display with reduced opacity
+    - Long-press for message actions
+    - Proper alignment (CenterStart/CenterEnd)
+
+  - **ChatThreadScreen**:
+    - Full chat UI with LazyColumn message list
+    - TopAppBar with thread info (name + phone)
+    - Message composition UI at bottom
+    - Keyboard-aware layout with imePadding
+    - Auto-scroll to bottom on send
+    - Loading, empty, and content states
+    - Thread actions menu (archive, delete, mute)
+    - Message actions menu (copy, retry, delete)
+    - Snackbar for errors
+    - Circular send button with disabled state
+
+  - **MainActivity Integration**:
+    - Simple state-based navigation (threadId)
+    - ChatThreadViewModel.Factory injection
+    - Navigate to chat on conversation click
+    - Back button returns to conversation list
+
+- **Files Created**:
+  - `ui/chat/ChatThreadUiState.kt` (145 lines)
+  - `ui/chat/ChatThreadViewModel.kt` (203 lines)
+  - `ui/chat/MessageBubble.kt` (215 lines)
+  - `ui/chat/ChatThreadScreen.kt` (274 lines)
+
+- **Files Modified**:
+  - `ui/MainActivity.kt` - Added chat thread navigation
+  - `res/values/strings.xml` - Added chat-related strings (mute, copy, send, back, no_messages, etc.)
+
+- **Design Features**:
+  - Material You theming throughout
+  - Dynamic bubble shapes based on message grouping
+  - Gradient-free clean message bubbles
+  - Proper spacing between message groups (12dp)
+  - Tight spacing within groups (2dp)
+  - Date dividers with Surface styling
+  - Failed message indicators (red error icon)
+  - Sending indicators (small circular progress)
+  - Keyboard-aware composition area
+  - Rounded text field (24dp) for message input
+
+- **Architecture**:
+  - MVVM pattern with Assisted Injection
+  - Flow-based reactive data loading
+  - Repository pattern for data access
+  - Clean separation: UI ← ViewModel ← Repository ← DAO
+  - Error handling with Result<T>
+  - State management with StateFlow
+  - Proper lifecycle awareness
+
+- **Message Grouping Logic**:
+  - Group messages from same sender within 2 minutes
+  - First in group: show date divider if new day
+  - Last in group: add extra spacing (12dp)
+  - Middle messages: tight spacing (2dp)
+  - Dynamic bubble corners based on position
+
+- **Build Status**: ✅ Build successful (minor deprecation warnings only)
+
+- **Next Steps**:
+  - Test on real device with actual SMS functionality
+  - Implement contact avatar loading with Coil
+  - Add clipboard functionality for message copy
+  - Implement new message screen (compose to new contact)
+  - Add swipe actions for messages/conversations
+  - Test incremental sync on app resume
+  - Implement search functionality
+
+---
+
 *Progress entries will be added as features are implemented*
