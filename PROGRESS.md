@@ -1465,3 +1465,46 @@ This document tracks completed tasks, implementation decisions, and challenges e
 ---
 
 *Complete test suite ensures automation rules work correctly - ready for production use*
+
+### [2025-11-21 00:00] - Expanded Unit Test Suite - RuleRepository
+- **Task**: Expanded test coverage with RuleRepository tests
+- **Result**: Total test suite now at 115 tests (up from 83)
+
+**New Test File**:
+- `RuleRepositoryTest.kt` (32 tests, 523 lines)
+  - CRUD operations (create, read, update, delete)
+  - Get all rules and filter enabled rules
+  - Get rule by ID with existence checking
+  - Create rules with complex configurations
+    - Multiple triggers (FromSender, ContainsKeyword, TimeRange)
+    - Multiple conditions (IsUnread, MatchesPattern, etc.)
+    - Multiple actions (MarkAsRead, SetCategory, AutoReply)
+  - Update operations
+    - Update rule name
+    - Update enabled state
+    - Update trigger statistics with timestamps
+  - Delete operations (by rule object and by ID)
+  - Set rule enabled/disabled
+  - Statistics queries (total count, enabled count)
+  - Integration tests (complete lifecycle, concurrent operations)
+  - Edge cases (empty lists, long descriptions, non-existent rules)
+
+**Complete Test Suite Summary**:
+- ✅ **RuleEngineTest**: 29 tests (business logic)
+- ✅ **RulesViewModelTest**: 21 tests (UI state management)
+- ✅ **RuleTypeConvertersTest**: 33 tests (serialization)
+- ✅ **RuleRepositoryTest**: 32 tests (data layer) [NEW]
+- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- ✅ **Total**: 115 tests, 0 failures
+
+**Test Coverage by Layer**:
+- **Domain Layer**: RuleEngine (29 tests)
+- **Data Layer**: RuleRepository (32 tests), RuleTypeConverters (33 tests)
+- **Presentation Layer**: RulesViewModel (21 tests)
+- **Complete vertical slice** of automation rules feature
+
+**Commit**: 61a9fd9
+
+---
+
+*Automation rules system has comprehensive test coverage across all layers*
