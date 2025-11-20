@@ -157,17 +157,20 @@ class SmsProviderService @Inject constructor(
 
     /**
      * Read all conversation threads from the system provider
+     * Builds threads from messages instead of using Telephony.Threads.CONTENT_URI
+     * to avoid device-specific schema issues (especially Samsung devices)
      */
     suspend fun readAllThreads(): List<Thread> = withContext(Dispatchers.IO) {
-        val threads = mutableListOf<Thread>()
-        val uri = Telephony.Threads.CONTENT_URI
+        val threadsMap = mutableMapOf<Long, Thread>()
+        val uri = Telephony.Sms.CONTENT_URI
 
+        // Group messages by thread_id to build thread list
         val projection = arrayOf(
-            Telephony.Threads._ID,
-            Telephony.Threads.RECIPIENT_IDS,
-            Telephony.Threads.MESSAGE_COUNT,
-            Telephony.Threads.DATE,
-            Telephony.Threads.SNIPPET
+            Telephony.Sms._ID,
+            Telephony.Sms.THREAD_ID,
+            Telephony.Sms.ADDRESS,
+            Telephony.Sms.BODY,
+            Telephony.Sms.DATE
         )
 
         try {
@@ -176,41 +179,40 @@ class SmsProviderService @Inject constructor(
                 projection,
                 null,
                 null,
-                "${Telephony.Threads.DATE} DESC"
+                "${Telephony.Sms.DATE} DESC"
             )?.use { cursor ->
-                val idIndex = cursor.getColumnIndexOrThrow(Telephony.Threads._ID)
-                val recipientIdsIndex = cursor.getColumnIndexOrThrow(Telephony.Threads.RECIPIENT_IDS)
-                val messageCountIndex = cursor.getColumnIndexOrThrow(Telephony.Threads.MESSAGE_COUNT)
-                val dateIndex = cursor.getColumnIndexOrThrow(Telephony.Threads.DATE)
-                val snippetIndex = cursor.getColumnIndexOrThrow(Telephony.Threads.SNIPPET)
+                val idIndex = cursor.getColumnIndexOrThrow(Telephony.Sms._ID)
+                val threadIdIndex = cursor.getColumnIndexOrThrow(Telephony.Sms.THREAD_ID)
+                val addressIndex = cursor.getColumnIndexOrThrow(Telephony.Sms.ADDRESS)
+                val bodyIndex = cursor.getColumnIndexOrThrow(Telephony.Sms.BODY)
+                val dateIndex = cursor.getColumnIndexOrThrow(Telephony.Sms.DATE)
 
                 while (cursor.moveToNext()) {
-                    val threadId = cursor.getLong(idIndex)
-                    val recipientIds = cursor.getString(recipientIdsIndex) ?: ""
-                    val messageCount = cursor.getInt(messageCountIndex)
-                    val date = cursor.getLong(dateIndex)
-                    val snippet = cursor.getString(snippetIndex) ?: ""
+                    val threadId = cursor.getLong(threadIdIndex)
 
-                    // Get recipient address from the thread
-                    val recipient = getRecipientForThread(threadId)
+                    // Only add thread if we haven't seen it yet
+                    // (messages are sorted DESC so first occurrence is latest)
+                    if (!threadsMap.containsKey(threadId)) {
+                        val address = cursor.getString(addressIndex) ?: "Unknown"
+                        val body = cursor.getString(bodyIndex) ?: ""
+                        val date = cursor.getLong(dateIndex)
 
-                    threads.add(
-                        Thread(
+                        threadsMap[threadId] = Thread(
                             id = threadId,
-                            recipient = recipient,
-                            lastMessage = snippet,
+                            recipient = address,
+                            lastMessage = body,
                             lastMessageDate = date,
-                            messageCount = messageCount
+                            messageCount = 0 // Will be updated later
                         )
-                    )
+                    }
                 }
             }
-            Timber.d("Read ${threads.size} threads from provider")
+            Timber.d("Read ${threadsMap.size} threads from messages")
         } catch (e: Exception) {
-            Timber.e(e, "Error reading threads")
+            Timber.e(e, "Error reading threads from messages")
         }
 
-        return@withContext threads
+        return@withContext threadsMap.values.toList()
     }
 
     /**
