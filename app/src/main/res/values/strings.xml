@@ -22,10 +22,17 @@
     <!-- Permissions -->
     <string name="sms_permission_required">SMS permission required</string>
     <string name="sms_permission_rationale">VectorText needs SMS permissions to send and receive messages</string>
-    <string name="grant_permission">Grant permission</string>
+    <string name="grant_permission">Grant Permission</string>
     <string name="default_sms_app_required">Set as default messaging app</string>
     <string name="default_sms_app_rationale">VectorText needs to be your default messaging app to function properly</string>
     <string name="set_as_default">Set as default</string>
+    <string name="setup_permissions">Setup Permissions</string>
+    <string name="setup_permissions_description">VectorText needs a few permissions to send and receive text messages</string>
+    <string name="sms_permissions">SMS Permissions</string>
+    <string name="sms_permissions_description">Required to send, receive, and read text messages</string>
+    <string name="default_sms_app">Default Messaging App</string>
+    <string name="default_sms_app_description">VectorText must be your default messaging app to handle SMS</string>
+    <string name="continue_to_app">Continue to App</string>
 
     <!-- Common -->
     <string name="cancel">Cancel</string>
