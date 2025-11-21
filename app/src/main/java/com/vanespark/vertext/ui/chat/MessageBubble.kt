@@ -150,21 +150,47 @@ fun MessageBubble(
                         vertical = 8.dp
                     )
                 ) {
-                    // Message text
-                    Text(
-                        text = message.body,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = textColor
-                    )
+                    // MMS Subject (if present)
+                    if (!message.subject.isNullOrBlank()) {
+                        Text(
+                            text = message.subject,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = textColor
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                    // Media attachments (if present)
+                    if (message.mediaAttachments.isNotEmpty()) {
+                        message.mediaAttachments.forEach { attachment ->
+                            MediaAttachmentView(
+                                attachment = attachment,
+                                modifier = Modifier.fillMaxWidth(),
+                                onImageClick = { /* TODO: Open image viewer */ },
+                                onVideoClick = { /* TODO: Open video player */ }
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
 
-                    // Timestamp and status row
-                    Row(
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
+                    // Message text (if present)
+                    if (message.body.isNotBlank()) {
+                        Text(
+                            text = message.body,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = textColor
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+
+                    // Timestamp and status row (only if there's content)
+                    if (message.body.isNotBlank() || message.mediaAttachments.isNotEmpty()) {
+                        Row(
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
                         // Status indicators for outgoing messages
                         if (!message.isIncoming) {
                             when {
@@ -188,13 +214,14 @@ fun MessageBubble(
                             }
                         }
 
-                        // Timestamp
-                        Text(
-                            text = message.formattedTime,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = textColor.copy(alpha = 0.7f),
-                            fontSize = 11.sp
-                        )
+                            // Timestamp
+                            Text(
+                                text = message.formattedTime,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = textColor.copy(alpha = 0.7f),
+                                fontSize = 11.sp
+                            )
+                        }
                     }
                 }
             }

@@ -141,4 +141,15 @@ data class Message(
         currentReactions.removeAll { it.sender == sender && it.emoji == emoji }
         return copy(reactions = Reaction.toJson(currentReactions))
     }
+
+    /** Get parsed media attachments list */
+    fun parseMediaAttachments(): List<MediaAttachment> = MediaAttachment.fromJson(mediaUris)
+
+    /** Check if message has media attachments */
+    val hasMediaAttachments: Boolean
+        get() = !mediaUris.isNullOrBlank()
+
+    /** Check if message is MMS (has subject or media attachments) */
+    val isMms: Boolean
+        get() = !subject.isNullOrBlank() || hasMediaAttachments
 }

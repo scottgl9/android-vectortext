@@ -84,4 +84,15 @@
     <string name="notifications">Notifications</string>
     <string name="messages">Messages</string>
     <string name="storage_backup">Storage &amp; Backup</string>
+
+    <!-- Media Attachments -->
+    <string name="play_video">Play video</string>
+    <string name="pause_video">Pause video</string>
+    <string name="play_audio">Play audio</string>
+    <string name="pause_audio">Pause audio</string>
+    <string name="view_image">View image</string>
+    <string name="attachment_loading">Loading attachment…</string>
+    <string name="attachment_error">Could not load attachment</string>
+    <string name="video_thumbnail">Video thumbnail</string>
+    <string name="audio_duration">Duration: %s</string>
 </resources>

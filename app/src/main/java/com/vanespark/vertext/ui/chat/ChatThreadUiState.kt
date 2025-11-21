@@ -1,5 +1,6 @@
 package com.vanespark.vertext.ui.chat
 
+import com.vanespark.vertext.data.model.MediaAttachment
 import com.vanespark.vertext.data.model.Message
 import com.vanespark.vertext.data.model.Reaction
 import com.vanespark.vertext.data.model.Thread
@@ -35,6 +36,8 @@ data class MessageUiItem(
     val formattedTime: String,
     val formattedDate: String,
     val reactions: List<Reaction> = emptyList(),
+    val mediaAttachments: List<MediaAttachment> = emptyList(),
+    val subject: String? = null,
     val isFirstInGroup: Boolean = false,
     val isLastInGroup: Boolean = false
 ) {
@@ -68,7 +71,9 @@ data class MessageUiItem(
                 displayName = displayName,
                 formattedTime = formatTime(message.date),
                 formattedDate = formatDate(message.date),
-                reactions = message.parseReactions()
+                reactions = message.parseReactions(),
+                mediaAttachments = message.parseMediaAttachments(),
+                subject = message.subject
             )
         }
 
