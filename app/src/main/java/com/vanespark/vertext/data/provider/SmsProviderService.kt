@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.ContactsContract
 import android.provider.Telephony
+import android.telephony.TelephonyManager
 import com.vanespark.vertext.data.model.Message
 import com.vanespark.vertext.data.model.Thread
 import com.vanespark.vertext.data.repository.ContactRepository
@@ -28,6 +29,17 @@ class SmsProviderService @Inject constructor(
 ) {
 
     private val contentResolver: ContentResolver = context.contentResolver
+
+    // Cache the user's phone number to avoid repeated lookups
+    private val userPhoneNumber: String? by lazy {
+        try {
+            val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+            telephonyManager?.line1Number?.takeIf { it.isNotBlank() }
+        } catch (e: Exception) {
+            Timber.e(e, "Error getting user phone number")
+            null
+        }
+    }
 
     /**
      * Read all SMS messages from the system provider
@@ -93,6 +105,74 @@ class SmsProviderService @Inject constructor(
             Timber.d("Read ${messages.size} SMS messages from provider")
         } catch (e: Exception) {
             Timber.e(e, "Error reading SMS messages")
+        }
+
+        return@withContext messages
+    }
+
+    /**
+     * Read all MMS messages from the system provider
+     */
+    suspend fun readAllMmsMessages(limit: Int? = null): List<Message> = withContext(Dispatchers.IO) {
+        val messages = mutableListOf<Message>()
+        val uri = Uri.parse("content://mms")
+
+        val projection = arrayOf(
+            "_id",
+            "thread_id",
+            "date",
+            "read",
+            "sub"
+        )
+
+        val sortOrder = "date DESC${if (limit != null) " LIMIT $limit" else ""}"
+
+        try {
+            contentResolver.query(
+                uri,
+                projection,
+                null,
+                null,
+                sortOrder
+            )?.use { cursor ->
+                val idIndex = cursor.getColumnIndex("_id")
+                val threadIdIndex = cursor.getColumnIndex("thread_id")
+                val dateIndex = cursor.getColumnIndex("date")
+                val readIndex = cursor.getColumnIndex("read")
+                val subIndex = cursor.getColumnIndex("sub")
+
+                while (cursor.moveToNext()) {
+                    val mmsId = if (idIndex >= 0) cursor.getLong(idIndex) else continue
+                    val threadId = if (threadIdIndex >= 0) cursor.getLong(threadIdIndex) else 0L
+                    val date = if (dateIndex >= 0) cursor.getLong(dateIndex) * 1000 else 0L // Convert to milliseconds
+                    val isRead = if (readIndex >= 0) cursor.getInt(readIndex) == 1 else false
+                    val subject = if (subIndex >= 0) cursor.getString(subIndex) else null
+
+                    // Get MMS body text
+                    val body = getMmsBody(mmsId) ?: continue
+
+                    // Get sender/recipient address
+                    val recipients = getMmsRecipients(mmsId)
+                    // Use the first recipient as the address (could be sender or recipient)
+                    val address = recipients.firstOrNull() ?: "Unknown"
+
+                    messages.add(
+                        Message(
+                            id = mmsId,
+                            threadId = threadId,
+                            address = address,
+                            body = body,
+                            date = date,
+                            type = 1, // MMS messages are typically type 1 (inbox)
+                            isRead = isRead,
+                            subject = subject
+                        )
+                    )
+                }
+            }
+            Timber.d("Read ${messages.size} MMS messages from provider")
+        } catch (e: Exception) {
+            Timber.e(e, "Error reading MMS messages")
         }
 
         return@withContext messages
@@ -312,11 +392,16 @@ class SmsProviderService @Inject constructor(
      */
     private fun enhanceThreadsWithGroupInfo(threadsMap: MutableMap<Long, Thread>) {
         threadsMap.forEach { (threadId, thread) ->
-            val recipients = getRecipientsForThread(threadId)
+            val allRecipients = getRecipientsForThread(threadId)
 
-            if (recipients.size > 1) {
+            // Filter out the user's own phone number from the recipients list
+            val recipients = allRecipients.filter { phone ->
+                !isUserPhoneNumber(phone)
+            }
+
+            if (allRecipients.size > 1) {
                 // This is a group conversation
-                val recipientsJson = JSONArray(recipients).toString()
+                val recipientsJson = JSONArray(allRecipients).toString()
 
                 // Look up contact names for each recipient from Android Contacts
                 val recipientNames = recipients.map { phone ->
@@ -325,6 +410,7 @@ class SmsProviderService @Inject constructor(
 
                 // Generate display name from contact names
                 val displayName = when {
+                    recipientNames.isEmpty() -> "Group Chat" // Fallback if only user was in the list
                     recipientNames.size <= 3 -> recipientNames.joinToString(", ")
                     else -> "${recipientNames.take(3).joinToString(", ")} +${recipientNames.size - 3}"
                 }
@@ -334,10 +420,10 @@ class SmsProviderService @Inject constructor(
                     isGroup = true,
                     recipients = recipientsJson
                 )
-                Timber.d("Thread $threadId is a group with ${recipients.size} recipients: $recipientNames")
+                Timber.d("Thread $threadId is a group with ${allRecipients.size} total recipients (${recipients.size} excluding user): $recipientNames")
             } else if (thread.recipient == "Loading...") {
                 // Single recipient MMS - update with actual recipient (name or phone)
-                val phone = recipients.firstOrNull() ?: "Unknown"
+                val phone = recipients.firstOrNull() ?: allRecipients.firstOrNull() ?: "Unknown"
                 val displayName = getContactNameForPhone(phone)
 
                 threadsMap[threadId] = thread.copy(
@@ -345,6 +431,23 @@ class SmsProviderService @Inject constructor(
                 )
             }
         }
+    }
+
+    /**
+     * Check if a phone number matches the user's phone number
+     */
+    private fun isUserPhoneNumber(phone: String): Boolean {
+        val userPhone = userPhoneNumber ?: return false
+
+        // Normalize both numbers for comparison (remove non-digits)
+        val normalizedPhone = phone.replace(Regex("[^0-9]"), "")
+        val normalizedUserPhone = userPhone.replace(Regex("[^0-9]"), "")
+
+        // Compare last 10 digits (to handle country codes)
+        val phoneDigits = normalizedPhone.takeLast(10)
+        val userPhoneDigits = normalizedUserPhone.takeLast(10)
+
+        return phoneDigits == userPhoneDigits
     }
 
     /**

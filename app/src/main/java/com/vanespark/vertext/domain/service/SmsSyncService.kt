@@ -109,10 +109,12 @@ class SmsSyncService @Inject constructor(
 
             // Read messages in batches to avoid memory issues
             val batchSize = 500
-            val allMessages = smsProviderService.readAllSmsMessages(limit = null)
+            val smsMessages = smsProviderService.readAllSmsMessages(limit = null)
+            val mmsMessages = smsProviderService.readAllMmsMessages(limit = null)
+            val allMessages = smsMessages + mmsMessages
             val totalMessages = allMessages.size
 
-            Timber.d("Read $totalMessages messages from system")
+            Timber.d("Read ${smsMessages.size} SMS + ${mmsMessages.size} MMS = $totalMessages total messages from system")
 
             // Step 4: Sync messages to database
             emit(
