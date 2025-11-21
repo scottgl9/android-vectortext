@@ -154,11 +154,6 @@ class SmsProviderService @Inject constructor(
                     // Get MMS body text
                     val body = getMmsBody(mmsId) ?: continue
 
-                    // Get sender/recipient address
-                    val recipients = getMmsRecipients(mmsId)
-                    // Use the first recipient as the address (could be sender or recipient)
-                    val address = recipients.firstOrNull() ?: "Unknown"
-
                     // Map msg_box to message type
                     // msg_box: 1=inbox, 2=sent, 3=draft, 4=outbox
                     // Message.TYPE: 1=inbox, 2=sent, 3=draft, 4=outbox, 5=failed
@@ -167,6 +162,17 @@ class SmsProviderService @Inject constructor(
                         3 -> 3  // Draft
                         4 -> 3  // Outbox -> treat as draft
                         else -> 1  // Inbox (default)
+                    }
+
+                    // Get sender/recipient address based on message type
+                    // For incoming messages (msgBox=1): use FROM address (type=137)
+                    // For outgoing messages (msgBox=2): use TO addresses (type=130)
+                    val address = if (msgBox == 1) {
+                        // Incoming: get sender
+                        getMmsSender(mmsId) ?: "Unknown"
+                    } else {
+                        // Outgoing: get first recipient
+                        getMmsRecipients(mmsId).firstOrNull() ?: "Unknown"
                     }
 
                     messages.add(
@@ -495,7 +501,7 @@ class SmsProviderService @Inject constructor(
             Timber.e(e, "Error reading SMS recipients for thread $threadId")
         }
 
-        // Get MMS recipients
+        // Get MMS recipients and senders
         val mmsUri = Uri.parse("content://mms")
         val mmsProjection = arrayOf("_id")
         val mmsSelection = "thread_id = ?"
@@ -512,7 +518,9 @@ class SmsProviderService @Inject constructor(
                 val idIndex = cursor.getColumnIndex("_id")
                 while (cursor.moveToNext()) {
                     val mmsId = if (idIndex >= 0) cursor.getLong(idIndex) else continue
+                    // Add both recipients and sender to get all participants
                     recipients.addAll(getMmsRecipients(mmsId))
+                    getMmsSender(mmsId)?.let { recipients.add(it) }
                 }
             }
         } catch (e: Exception) {
@@ -524,6 +532,45 @@ class SmsProviderService @Inject constructor(
 
     /**
      * Get recipients for a specific MMS message
+     */
+    /**
+     * Get the sender address for an MMS message
+     * Returns the FROM address (type=137)
+     */
+    private fun getMmsSender(mmsId: Long): String? {
+        val uri = Uri.parse("content://mms/$mmsId/addr")
+
+        try {
+            contentResolver.query(
+                uri,
+                arrayOf("address", "type"),
+                null,
+                null,
+                null
+            )?.use { cursor ->
+                val addressIndex = cursor.getColumnIndex("address")
+                val typeIndex = cursor.getColumnIndex("type")
+
+                while (cursor.moveToNext()) {
+                    val type = if (typeIndex >= 0) cursor.getInt(typeIndex) else 0
+                    val address = if (addressIndex >= 0) cursor.getString(addressIndex) else null
+
+                    // Type 137 = FROM (sender)
+                    if (!address.isNullOrBlank() && type == 137) {
+                        return address
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error getting MMS sender for $mmsId")
+        }
+
+        return null
+    }
+
+    /**
+     * Get recipient addresses for an MMS message
+     * Returns TO addresses (type=130) and BCC (type=151)
      */
     private fun getMmsRecipients(mmsId: Long): List<String> {
         val recipients = mutableListOf<String>()
@@ -541,12 +588,11 @@ class SmsProviderService @Inject constructor(
                 val typeIndex = cursor.getColumnIndex("type")
 
                 while (cursor.moveToNext()) {
-                    // Type 151 = TO (recipient), Type 137 = FROM (sender)
                     val type = if (typeIndex >= 0) cursor.getInt(typeIndex) else 0
                     val address = if (addressIndex >= 0) cursor.getString(addressIndex) else null
 
-                    // Include both TO and FROM to get all participants
-                    if (!address.isNullOrBlank() && (type == 151 || type == 137)) {
+                    // Type 130 = TO (recipient), Type 151 = BCC
+                    if (!address.isNullOrBlank() && (type == 130 || type == 151)) {
                         recipients.add(address)
                     }
                 }
