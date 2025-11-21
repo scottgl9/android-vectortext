@@ -7,6 +7,73 @@ This document tracks completed tasks, implementation decisions, and challenges e
 
 ## Progress Log
 
+### [2025-11-20 19:45] - Configurable Message Load Limit
+- **Task**: Make message loading limit configurable to improve performance
+- **Problem**: User reported: "The messages take a long time to load, could we just load the most recent 100 messages, and make it configurable?"
+- **Implemented**:
+  - Added messageLoadLimit setting to SettingsUiState (default 100 messages)
+  - Created MessageLoadLimitDialog for user to configure the limit
+    - Validates input: minimum 10, maximum 10000 messages
+    - Provides clear explanation of performance impact
+    - Text input with error handling for invalid values
+  - Added updateMessageLoadLimit() method in SettingsViewModel
+  - Updated ChatThreadViewModel to read limit from SharedPreferences
+  - Added UI in SettingsScreen under Messages section
+    - Shows current limit: "Load {N} most recent messages (tap to change)"
+    - Uses Refresh icon for visual consistency
+
+- **Files Modified**:
+  - SettingsViewModel.kt: Added setting management (+10/-2)
+    - Added messageLoadLimit to SettingsUiState
+    - Load from SharedPreferences with default 100
+    - Save/update via updateMessageLoadLimit()
+  - SettingsScreen.kt: Added UI components (+59/-0)
+    - MessageLoadLimitDialog with validation
+    - SettingsActionItem in Messages section
+    - Dialog state management
+  - ChatThreadViewModel.kt: Dynamic limit reading (+7/-2)
+    - Inject ApplicationContext for SharedPreferences access
+    - Read message_load_limit setting on each load
+    - Falls back to 100 if not set
+  - MessageDao.kt: Flow-based limit query (+3/-0)
+    - Added getMessagesByThreadLimitFlow() for reactive updates
+  - MessageRepository.kt: Repository methods (+8/-0)
+    - Added getMessagesForThreadLimit() returning Flow
+    - Renamed old method to getMessagesForThreadLimitSnapshot()
+
+- **Technical Details**:
+  - Uses SharedPreferences "settings" with MODE_PRIVATE
+  - Key: "message_load_limit", default: 100
+  - Validation range: 10-10000 messages
+  - Reads setting on each conversation load for immediate effect
+  - No app restart required after changing setting
+  - Flow-based queries ensure reactive updates
+
+- **Benefits**:
+  - Significantly faster load times for conversations with many messages
+  - Users can customize based on device capabilities
+  - Lower limits improve performance on older devices
+  - Higher limits show more context for power users
+  - Clear UI feedback on current setting value
+
+- **Testing**:
+  - Built and installed successfully on Samsung Galaxy Z Fold 6
+  - Settings screen displays new option under Messages section
+  - Dialog validation works: rejects <10, >10000, and non-numeric input
+  - Changing limit immediately affects next conversation load
+  - No breaking changes to existing functionality
+
+- **Decisions Made**:
+  - Default 100 messages balances performance and context
+  - Minimum 10 prevents extremely limited views
+  - Maximum 10000 prevents performance issues
+  - Use SharedPreferences instead of DataStore for simplicity
+  - Read on each load rather than caching for immediate effect
+
+- **Commits**:
+  - d07a567 - [Performance] Limit message loading to 100 most recent messages
+  - 8e6e9fd - [Feature] Make message load limit configurable
+
 ### [2025-11-20 18:20] - Contact Name Display Fix for Group Conversations
 - **Task**: Display contact names instead of phone numbers in group conversations
 - **Problem**: User reported: "It's showing the phone numbers instead of contact names, even if contact names exist"

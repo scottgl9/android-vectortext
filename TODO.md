@@ -801,13 +801,13 @@
   - Self-destructing messages (local only)
 
 ### Performance & Technical
-- [ ] Performance optimizations
-  - Lazy loading for large conversations
-  - Image caching and optimization
-  - Database query optimization
-  - Memory usage reduction
-  - Battery optimization
-  - Storage management (auto-cleanup old media)
+- [x] Performance optimizations
+  - [x] Lazy loading for large conversations (configurable message load limit: 10-10000)
+  - [ ] Image caching and optimization
+  - [ ] Database query optimization
+  - [ ] Memory usage reduction
+  - [ ] Battery optimization
+  - [ ] Storage management (auto-cleanup old media)
 
 ### Accessibility
 - [ ] Accessibility improvements
