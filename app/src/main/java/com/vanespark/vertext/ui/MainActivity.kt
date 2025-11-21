@@ -67,16 +67,47 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            // Load theme settings from SharedPreferences
+            // Load theme settings from SharedPreferences with reactive updates
             val prefs = remember { getSharedPreferences("settings", Context.MODE_PRIVATE) }
-            val themeMode = remember {
-                ThemeMode.valueOf(prefs.getString("theme", ThemeMode.SYSTEM.name) ?: ThemeMode.SYSTEM.name)
+
+            // Use mutableStateOf to make theme settings reactive
+            var themeMode by remember {
+                mutableStateOf(
+                    ThemeMode.valueOf(prefs.getString("theme", ThemeMode.SYSTEM.name) ?: ThemeMode.SYSTEM.name)
+                )
             }
-            val colorTheme = remember {
-                ColorTheme.fromName(prefs.getString("color_theme", ColorTheme.DEFAULT.name) ?: ColorTheme.DEFAULT.name)
+            var colorTheme by remember {
+                mutableStateOf(
+                    ColorTheme.fromName(prefs.getString("color_theme", ColorTheme.DEFAULT.name) ?: ColorTheme.DEFAULT.name)
+                )
             }
-            val useDynamicColor = remember { prefs.getBoolean("use_dynamic_color", false) }
-            val useAmoledBlack = remember { prefs.getBoolean("use_amoled_black", false) }
+            var useDynamicColor by remember { mutableStateOf(prefs.getBoolean("use_dynamic_color", false)) }
+            var useAmoledBlack by remember { mutableStateOf(prefs.getBoolean("use_amoled_black", false)) }
+
+            // Listen for SharedPreferences changes to update theme in real-time
+            LaunchedEffect(Unit) {
+                val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
+                    when (key) {
+                        "theme" -> {
+                            themeMode = ThemeMode.valueOf(
+                                sharedPreferences.getString("theme", ThemeMode.SYSTEM.name) ?: ThemeMode.SYSTEM.name
+                            )
+                        }
+                        "color_theme" -> {
+                            colorTheme = ColorTheme.fromName(
+                                sharedPreferences.getString("color_theme", ColorTheme.DEFAULT.name) ?: ColorTheme.DEFAULT.name
+                            )
+                        }
+                        "use_dynamic_color" -> {
+                            useDynamicColor = sharedPreferences.getBoolean("use_dynamic_color", false)
+                        }
+                        "use_amoled_black" -> {
+                            useAmoledBlack = sharedPreferences.getBoolean("use_amoled_black", false)
+                        }
+                    }
+                }
+                prefs.registerOnSharedPreferenceChangeListener(listener)
+            }
 
             // Determine dark theme based on ThemeMode
             val systemInDarkTheme = isSystemInDarkTheme()
