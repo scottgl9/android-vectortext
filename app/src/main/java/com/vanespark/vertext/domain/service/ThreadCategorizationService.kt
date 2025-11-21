@@ -85,7 +85,7 @@ class ThreadCategorizationService @Inject constructor(
                 ?: return ThreadCategory.UNCATEGORIZED
 
             // Get recent messages for analysis (up to 20)
-            val messages = messageRepository.getMessagesForThreadLimit(threadId, 20)
+            val messages = messageRepository.getMessagesForThreadLimitSnapshot(threadId, 20)
 
             if (messages.isEmpty()) {
                 return ThreadCategory.UNCATEGORIZED

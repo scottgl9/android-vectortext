@@ -48,6 +48,9 @@ interface MessageDao {
     fun getMessagesByThread(threadId: Long): Flow<List<Message>>
 
     @Query("SELECT * FROM messages WHERE thread_id = :threadId ORDER BY date DESC LIMIT :limit")
+    fun getMessagesByThreadLimitFlow(threadId: Long, limit: Int): Flow<List<Message>>
+
+    @Query("SELECT * FROM messages WHERE thread_id = :threadId ORDER BY date DESC LIMIT :limit")
     suspend fun getMessagesByThreadLimit(threadId: Long, limit: Int): List<Message>
 
     @Query("SELECT * FROM messages WHERE thread_id = :threadId ORDER BY date DESC LIMIT :limit OFFSET :offset")

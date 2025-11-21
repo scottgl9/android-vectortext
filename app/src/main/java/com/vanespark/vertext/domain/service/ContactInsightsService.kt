@@ -33,7 +33,7 @@ class ContactInsightsService @Inject constructor(
 
         // Get all messages with this contact
         val allMessages = threads.flatMap { thread ->
-            messageRepository.getMessagesForThreadLimit(thread.id, 1000)
+            messageRepository.getMessagesForThreadLimitSnapshot(thread.id, 1000)
         }
 
         if (allMessages.isEmpty()) {

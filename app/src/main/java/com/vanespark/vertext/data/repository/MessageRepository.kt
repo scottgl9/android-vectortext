@@ -55,7 +55,11 @@ class MessageRepository @Inject constructor(
         return messageDao.getMessagesByThread(threadId)
     }
 
-    suspend fun getMessagesForThreadLimit(threadId: Long, limit: Int): List<Message> {
+    fun getMessagesForThreadLimit(threadId: Long, limit: Int): Flow<List<Message>> {
+        return messageDao.getMessagesByThreadLimitFlow(threadId, limit)
+    }
+
+    suspend fun getMessagesForThreadLimitSnapshot(threadId: Long, limit: Int): List<Message> {
         return messageDao.getMessagesByThreadLimit(threadId, limit)
     }
 

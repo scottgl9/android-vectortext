@@ -36,7 +36,7 @@ class ThreadSummaryService @Inject constructor(
                 ?: return Result.failure(Exception("Thread not found: $threadId"))
 
             // Get messages for analysis
-            val messages = messageRepository.getMessagesForThreadLimit(threadId, maxMessages)
+            val messages = messageRepository.getMessagesForThreadLimitSnapshot(threadId, maxMessages)
 
             if (messages.isEmpty()) {
                 return Result.success(

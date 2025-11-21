@@ -73,7 +73,7 @@ class GetThreadSummaryTool @Inject constructor(
                 )
 
             // Get messages for analysis
-            val messages = messageRepository.getMessagesForThreadLimit(threadId, maxMessages)
+            val messages = messageRepository.getMessagesForThreadLimitSnapshot(threadId, maxMessages)
 
             if (messages.isEmpty()) {
                 return ToolResult(

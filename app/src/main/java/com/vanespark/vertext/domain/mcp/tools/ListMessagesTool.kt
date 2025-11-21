@@ -53,7 +53,7 @@ class ListMessagesTool @Inject constructor(
             Timber.d("Listing messages: threadId=$threadId, limit=$clampedLimit")
 
             val messages = if (threadId != null) {
-                messageRepository.getMessagesForThreadLimit(threadId, clampedLimit)
+                messageRepository.getMessagesForThreadLimitSnapshot(threadId, clampedLimit)
             } else {
                 messageRepository.getRecentMessages(clampedLimit)
             }

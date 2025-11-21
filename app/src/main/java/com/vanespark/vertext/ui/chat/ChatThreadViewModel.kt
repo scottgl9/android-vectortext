@@ -63,10 +63,11 @@ class ChatThreadViewModel @AssistedInject constructor(
 
     /**
      * Load messages for this thread
+     * Limited to most recent 100 messages for performance
      */
     private fun loadMessages() {
         viewModelScope.launch {
-            messageRepository.getMessagesForThread(threadId)
+            messageRepository.getMessagesForThreadLimit(threadId, 100)
                 .catch { e: Throwable ->
                     Timber.e(e, "Error loading messages")
                     _uiState.update {
