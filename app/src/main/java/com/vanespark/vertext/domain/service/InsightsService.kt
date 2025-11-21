@@ -1,7 +1,7 @@
 package com.vanespark.vertext.domain.service
 
 import com.vanespark.vertext.data.model.Message
-import com.vanespark.vertext.data.repository.MessageRepository
+import com.vanespark.vertext.data.provider.SmsProviderService
 import com.vanespark.vertext.data.repository.ThreadRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -15,7 +15,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class InsightsService @Inject constructor(
-    private val messageRepository: MessageRepository,
+    private val smsProviderService: SmsProviderService,
     private val threadRepository: ThreadRepository
 ) {
 
@@ -24,8 +24,12 @@ class InsightsService @Inject constructor(
      */
     suspend fun getInsights(): Result<MessagingInsights> = withContext(Dispatchers.IO) {
         try {
-            val totalMessages = messageRepository.getTotalMessageCount()
-            val allMessages = messageRepository.getAllMessagesSnapshot()
+            // Read all messages from SMS/MMS provider (no limit to get accurate stats)
+            val smsMessages = smsProviderService.readAllSmsMessages()
+            val mmsMessages = smsProviderService.readAllMmsMessages()
+            val allMessages = smsMessages + mmsMessages
+
+            val totalMessages = allMessages.size
             val threads = threadRepository.getAllThreadsSnapshot()
 
             // Calculate statistics
