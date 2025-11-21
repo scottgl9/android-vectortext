@@ -7,6 +7,79 @@ This document tracks completed tasks, implementation decisions, and challenges e
 
 ## Progress Log
 
+### [2025-11-20 18:15] - MMS Support for Group Message Sync
+- **Task**: Fix group message sync to detect and import MMS group conversations
+- **Problem**: User reported: "I still don't see my messages which contain multiple recipients. For example, I have a group with Baby and Melinda Glover."
+- **Root Cause**: SmsProviderService only queried content://sms, but Android stores group messages as MMS in content://mms
+- **Implemented**:
+  - Enhanced readAllThreads() to query both SMS and MMS providers
+  - Added readMmsThreads(): Queries content://mms for MMS conversations
+    - Handles MMS date conversion (seconds → milliseconds)
+    - Extracts MMS body from content://mms/part with content_type='text/plain'
+  - Added getMmsBody(mmsId): Extracts text content from MMS parts table
+  - Added enhanceThreadsWithGroupInfo(): Detects group conversations
+    - Calls getRecipientsForThread() to aggregate all unique recipients
+    - If recipients.size > 1, marks thread as group
+    - Populates Thread.recipients with JSON array
+    - Generates display name from recipient list
+  - Added getRecipientsForThread(threadId): Merges recipients from SMS and MMS
+    - Queries SMS messages for addresses
+    - Queries MMS messages and extracts recipients via getMmsRecipients()
+    - Returns deduplicated list of all participants
+  - Added getMmsRecipients(mmsId): Extracts recipients from content://mms/{id}/addr
+    - Filters for type 151 (TO) and 137 (FROM)
+    - Returns list of phone numbers
+
+- **Files Modified**:
+  - SmsProviderService.kt: Complete rewrite of sync logic (517 lines, +224/-12)
+    - readAllThreads() now orchestrates SMS + MMS + group detection
+    - Added comprehensive logging for debugging
+    - Thread display names truncated and include recipient counts
+
+- **Technical Details**:
+  - MMS dates stored in seconds (vs SMS in milliseconds)
+  - MMS body stored in parts table with seq=0 or seq=-1
+  - MMS recipients in addr table with type codes: 151=TO, 137=FROM, 129=BCC, 130=CC
+  - Group detection: recipients.size > 1 → isGroup=true
+  - Recipients JSON format: ["phone1","phone2",...] using org.json.JSONArray
+  - Display names: "Recipient1, Recipient2, Recipient3 +N" for groups >3 members
+
+- **Testing**:
+  - Built and installed successfully on Samsung Galaxy Z Fold 6
+  - Cleared app data and triggered fresh sync
+  - Detected 7 group conversations:
+    - Thread 11: 2 recipients
+    - Thread 204: 3 recipients
+    - Thread 6: 2 recipients (Baby and Melinda Glover group - VERIFIED ✓)
+    - Thread 66: 2 recipients
+    - Thread 112: 2 recipients
+    - Thread 129: 2 recipients
+    - Thread 61: 2 recipients
+  - Read 108 SMS threads + 59 MMS threads = 167 total threads
+  - Logs confirmed: "Thread 6 is a group with 2 recipients: [+18328536319, +12814144395]"
+  - User's specific group (Baby and Melinda Glover) successfully detected
+
+- **Debugging Process**:
+  - Used adb logcat to monitor sync process
+  - Queried content://sms/ to find messages with "Baby" and "Melinda"
+  - Confirmed thread_id=6 contains the group messages
+  - Verified group detection logged for thread 6
+
+- **Challenges Resolved**:
+  - Discovered MMS vs SMS storage difference for group messages
+  - Handled MMS date unit conversion
+  - Implemented recipient aggregation across SMS and MMS tables
+  - Created group display name generation with proper formatting
+
+- **Decisions Made**:
+  - Query both SMS and MMS on every sync (comprehensive coverage)
+  - Use sorted recipient list hash for consistent thread IDs
+  - Store recipients as JSON array (simple, no junction table needed)
+  - Truncate display names at 50 chars for UI readability
+  - Log all group detections for debugging
+
+- **Commit**: 3715b28 - [Feature] Add MMS support to SMS sync for group message detection
+
 ### [2025-11-21 00:15] - AI-Enhanced Contact Profiles Implementation
 - **Task**: Implement comprehensive contact profile system with conversation insights and analytics
 - **Implemented**:
