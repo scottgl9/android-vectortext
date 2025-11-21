@@ -176,4 +176,18 @@ interface MessageDao {
      */
     @Query("SELECT * FROM messages WHERE thread_id = :threadId AND date = :timestamp LIMIT 1")
     suspend fun getMessageByTimestamp(threadId: Long, timestamp: Long): Message?
+
+    /**
+     * Find a message by searching for quoted text (Google Messages reaction format)
+     * Tries exact match first, then prefix match if message was truncated
+     */
+    @Query("""
+        SELECT * FROM messages
+        WHERE thread_id = :threadId
+        AND date < :beforeTimestamp
+        AND (body = :searchText OR body LIKE :searchText || '%')
+        ORDER BY date DESC
+        LIMIT 1
+    """)
+    suspend fun findMessageByText(threadId: Long, searchText: String, beforeTimestamp: Long): Message?
 }

@@ -107,10 +107,11 @@ class ChatThreadViewModel @AssistedInject constructor(
                     val thread = _uiState.value.thread
                     val isGroupConversation = thread?.isGroup == true
 
-                    // Filter out reaction messages (REACT:...) that haven't been processed yet
-                    val reactionPattern = Regex("^REACT:(\\d+):(.+)$")
+                    // Filter out reaction messages that haven't been processed yet
+                    // Google Messages format: "<emoji> <verb> '<quoted text>'"
+                    val googleReactionPattern = Regex("^(.+?)\\s+(Liked|Disliked|Loved|Laughed at|Emphasized|Questioned|Reacted to)\\s+'.+'$")
                     val displayMessages = messages.filter { message ->
-                        !reactionPattern.matches(message.body.trim())
+                        !googleReactionPattern.matches(message.body.trim())
                     }
 
                     // Convert to UI items
@@ -174,7 +175,7 @@ class ChatThreadViewModel @AssistedInject constructor(
 
     /**
      * Send a reaction to a specific message
-     * Encodes the target message timestamp so the recipient can identify which message was reacted to
+     * Uses Google Messages compatible format: "<emoji> <verb> '<quoted text>'"
      */
     fun sendReaction(targetMessage: MessageUiItem, emoji: String) {
         val thread = _uiState.value.thread ?: run {
@@ -183,9 +184,26 @@ class ChatThreadViewModel @AssistedInject constructor(
             return
         }
 
-        // Encode reaction with target message timestamp
-        // Format: REACT:[timestamp]:[emoji]
-        val reactionMessage = "REACT:${targetMessage.timestamp}:$emoji"
+        // Map emoji to Google Messages reaction verbs
+        val verb = when (emoji) {
+            "👍" -> "Liked"
+            "👎" -> "Disliked"
+            "❤️" -> "Loved"
+            "😂" -> "Laughed at"
+            "😮" -> "Emphasized"
+            "😢" -> "Questioned"
+            else -> "Reacted to"  // Fallback for custom emojis
+        }
+
+        // Google Messages format: "<emoji> <verb> '<quoted text>'"
+        // Truncate message if too long to avoid SMS issues
+        val quotedText = if (targetMessage.body.length > 100) {
+            targetMessage.body.take(97) + "..."
+        } else {
+            targetMessage.body
+        }
+
+        val reactionMessage = "$emoji $verb '$quotedText'"
 
         viewModelScope.launch {
             messagingService.sendSmsMessage(

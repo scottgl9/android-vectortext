@@ -196,6 +196,13 @@ class MessageRepository @Inject constructor(
     }
 
     /**
+     * Find a message by searching for text content (for Google Messages reactions)
+     */
+    suspend fun findMessageByText(threadId: Long, searchText: String, beforeTimestamp: Long): Message? {
+        return messageDao.findMessageByText(threadId, searchText, beforeTimestamp)
+    }
+
+    /**
      * Add a reaction to a message
      */
     suspend fun addReaction(messageId: Long, emoji: String, sender: String, timestamp: Long, senderName: String? = null) {

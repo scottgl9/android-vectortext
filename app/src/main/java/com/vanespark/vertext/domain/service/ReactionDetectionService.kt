@@ -29,29 +29,36 @@ class ReactionDetectionService @Inject constructor(
      * Process a newly received or sent message to detect if it's a reaction
      * Returns true if the message was processed as a reaction, false otherwise
      *
+     * Supports Google Messages compatible format: "<emoji> <verb> '<quoted text>'"
+     * Examples: "👍 Liked 'See you at 5'", "❤️ Loved 'Thanks!'"
+     *
      * @param message The message to check
      * @return True if message was detected and processed as a reaction
      */
     suspend fun processMessageForReaction(message: Message): Boolean {
-        // Check if message is in the new reaction format: REACT:[timestamp]:[emoji]
-        val reactionPattern = Regex("^REACT:(\\d+):(.+)$")
-        val matchResult = reactionPattern.matchEntire(message.body.trim())
+        val messageBody = message.body.trim()
+
+        // Google Messages reaction pattern: "<emoji> <verb> '<quoted text>'"
+        // Pattern matches: emoji + space + verb + space + quoted text in single quotes
+        val googleReactionPattern = Regex("^(.+?)\\s+(Liked|Disliked|Loved|Laughed at|Emphasized|Questioned|Reacted to)\\s+'(.+)'$")
+        val matchResult = googleReactionPattern.find(messageBody)
 
         if (matchResult != null) {
-            // New format: explicit reaction with target timestamp
-            val (timestampStr, emoji) = matchResult.destructured
-            val targetTimestamp = timestampStr.toLongOrNull() ?: return false
+            val (emojiPart, verb, quotedText) = matchResult.destructured
+            val emoji = emojiPart.trim()
 
-            Timber.d("Detected explicit reaction: $emoji targeting timestamp $targetTimestamp")
+            Timber.d("Detected Google Messages reaction: $emoji ($verb) to '$quotedText'")
 
-            // Find the message with this exact timestamp
-            val targetMessage = messageRepository.getMessageByTimestamp(
+            // Find the message by searching for the quoted text
+            // Try to find exact match first, then fuzzy match
+            val targetMessage = messageRepository.findMessageByText(
                 threadId = message.threadId,
-                timestamp = targetTimestamp
+                searchText = quotedText,
+                beforeTimestamp = message.date
             )
 
             if (targetMessage == null) {
-                Timber.d("No message found with timestamp $targetTimestamp")
+                Timber.d("No message found matching quoted text: '$quotedText'")
                 return false
             }
 
@@ -79,10 +86,10 @@ class ReactionDetectionService @Inject constructor(
             return true
         }
 
-        // Fallback: Check if this message is a single emoji (legacy behavior)
-        val emoji = Reaction.detectEmojiReaction(message.body) ?: return false
+        // Fallback: Check if this message is a single emoji (simple reaction)
+        val emoji = Reaction.detectEmojiReaction(messageBody) ?: return false
 
-        Timber.d("Detected potential emoji reaction: $emoji from ${message.address}")
+        Timber.d("Detected simple emoji reaction: $emoji from ${message.address}")
 
         // Find the previous message in the thread
         val targetMessage = messageRepository.getLastMessageBeforeTimestamp(
