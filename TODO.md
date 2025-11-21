@@ -3,10 +3,11 @@
 ## Current Issues (High Priority)
 
 ### Bug Fixes
-- [ ] Fix broken Insights feature
-  - Acceptance criteria: Insights screen displays data correctly and functions as before
-  - Dependencies: Investigate what broke after recent changes (possibly related to Icon updates)
-  - Testing: Verify all insights calculations and UI display work correctly
+- [x] Fix broken Insights feature ✅ [COMPLETED 2025-11-20]
+  - Root cause: Performance refactor eliminated message storage in Room database
+  - Solution: Updated InsightsService to query from SMS/MMS ContentProvider directly
+  - Testing: Build successful, Insights now reads from correct data source
+  - Commit: 2b559fa
 
 ---
 
