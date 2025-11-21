@@ -114,11 +114,16 @@
   - Delivery status indicators
   - Color-coded by sender
 
-- [x] Implement media message support
-  - Image display with thumbnails
-  - Video thumbnails with play button
-  - Tap to open full-screen viewer
-  - Shared element transitions
+- [x] Implement media message support ✅ [COMPLETED 2025-11-20]
+  - ✅ Image display with thumbnails (Coil async loading)
+  - ✅ Video thumbnails with play button overlay
+  - ✅ Audio playback with ExoPlayer controls
+  - ✅ Tap to open full-screen viewer (pinch-to-zoom, pan gestures)
+  - ✅ Full-screen video player with native controls
+  - ✅ MMS subject display in message bubbles
+  - ✅ All media formats supported (image, video, audio, generic files)
+  - ✅ ExoPlayer integration for audio/video playback
+  - ✅ Proper lifecycle management and resource cleanup
 
 - [x] Add message composition UI
   - Text input field with Material You styling
@@ -733,22 +738,24 @@
   - Resume drafts when reopening conversation
   - Draft sync across devices (future)
 
-### Media & Attachments
-- [ ] Enhanced media viewer
-  - Full-screen image viewer with zoom
-  - Video player with controls
-  - Media gallery view (all images from conversation)
-  - Save media to device
-  - Share media to other apps
-  - Edit images before sending
+### Media & Attachments ✅ [CORE FEATURES COMPLETED]
+- [x] Enhanced media viewer ✅ [COMPLETED 2025-11-20]
+  - ✅ Full-screen image viewer with pinch-to-zoom (1x-5x)
+  - ✅ Pan gesture support with boundary constraints
+  - ✅ Video player with native ExoPlayer controls
+  - ✅ Audio playback with progress bar and duration display
+  - [ ] Media gallery view (all images from conversation)
+  - [ ] Save media to device
+  - [ ] Share media to other apps
+  - [ ] Edit images before sending
 
 - [ ] Rich media support
-  - GIF support
-  - Audio message recording
-  - Voice note playback
-  - Document attachments (PDF, etc.)
-  - Location sharing
-  - Contact card sharing
+  - ✅ GIF support (via Coil image loading)
+  - [ ] Audio message recording
+  - ✅ Voice note playback (ExoPlayer-based)
+  - [ ] Document attachments (PDF, etc.)
+  - [ ] Location sharing
+  - [ ] Contact card sharing
 
 ### Import/Export & Backup
 - [ ] Advanced backup features
