@@ -7,6 +7,82 @@ This document tracks completed tasks, implementation decisions, and challenges e
 
 ## Progress Log
 
+### [2025-11-20 23:15] - Theme Picker UI with Visual Previews
+- **Task**: Add visual theme picker UI to Settings screen
+- **Context**: Backend theming system complete (7 color themes), now adding user-friendly UI
+- **Implemented**:
+  - **ColorThemeSettingItem** (SettingsScreen.kt:332-379):
+    - List item showing current color theme with inline preview dots
+    - Displays theme name (e.g., "Purple (Default)")
+    - Shows 3 color dots (primary/secondary/tertiary) as quick preview
+    - Tappable to open full theme picker dialog
+    - Uses Palette icon for color theme selector
+
+  - **ColorThemePreviewDots** (SettingsScreen.kt:381-402):
+    - Inline mini-preview showing 3 colored dots
+    - Each dot is 12dp, showing primary/secondary/tertiary colors
+    - Uses light scheme colors for preview
+    - Renders in trailing position of list item
+
+  - **ThemePickerDialog** (SettingsScreen.kt:404-437):
+    - Full-screen AlertDialog showing all 7 themes
+    - Scrollable LazyColumn of theme preview cards
+    - Title: "Choose Color Theme"
+    - Cancel button to dismiss without changing
+    - Immediate save on selection
+
+  - **ThemePreviewCard** (SettingsScreen.kt:439-532):
+    - Large preview card for each theme (e.g., "Ocean Blue", "Sunset Orange")
+    - Shows theme display name with bold typography
+    - Displays both light and dark variants side-by-side
+    - 3 color swatches per variant (Primary/Secondary/Tertiary)
+    - Selected theme gets blue border and checkmark icon
+    - Tappable to select theme
+    - Border: 2dp primary color when selected
+
+  - **ColorSwatch** (SettingsScreen.kt:534-560):
+    - Individual color display component
+    - 40dp height colored box with rounded corners
+    - Label below (Primary/Secondary/Tertiary)
+    - Shows actual theme colors for accurate preview
+
+  - **UI Layout Updates**:
+    - Changed ThemeSettingItem to "Theme Mode" with Brightness6 icon
+    - Added ColorThemeSettingItem after Theme Mode
+    - Added Dynamic Color toggle with ColorLens icon
+    - Section: Appearance > Theme Mode > Color Theme > Dynamic Color > AMOLED Black
+
+- **Files Changed**:
+  - `SettingsScreen.kt` (+249 lines, -2 lines)
+    - Added ColorTheme import
+    - Added androidx.compose.foundation.background import
+    - New composables: ColorThemeSettingItem, ColorThemePreviewDots, ThemePickerDialog, ThemePreviewCard, ColorSwatch
+    - Updated Appearance section layout
+
+- **User Experience**:
+  1. User opens Settings
+  2. Taps "Color Theme" showing current theme and preview dots
+  3. Dialog opens showing all 7 themes with large previews
+  4. Each theme card shows light/dark variants with color swatches
+  5. Current theme highlighted with border and checkmark
+  6. Tap theme to select, dialog closes, preference saved
+  7. **Note**: App restart currently required for theme to fully apply
+
+- **Build Status**: ✅ Successful
+  - All compilation successful
+  - 4 deprecation warnings for `Divider` (pre-existing code, unrelated)
+  - Tests passing (54/54)
+
+- **Next Steps**:
+  - Implement real-time theme switching without app restart
+  - Test theme picker on actual device
+  - Optionally add theme preview in dialog title bar
+
+- **Challenges**: None - straightforward implementation
+- **Testing**: Build successful, visual verification needed on device
+
+---
+
 ### [2025-11-20 22:30] - Phase 2: Hybrid SMS Provider Architecture
 - **Task**: Implement direct SMS provider access for 90% performance improvement
 - **Context**: Following PERFORMANCE_ANALYSIS.md recommendations, eliminated database duplication of messages
