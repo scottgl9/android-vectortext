@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.vanespark.vertext"
-        minSdk = 28
+        minSdk = 31
         targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
@@ -134,6 +134,9 @@ dependencies {
 
     // Timber for logging
     implementation("com.jakewharton.timber:timber:5.0.1")
+
+    // Google AI Edge (Gemini Nano via AICore) - Experimental
+    implementation("com.google.ai.edge.aicore:aicore:0.0.1-exp02")
 
     // Testing
     testImplementation("junit:junit:4.13.2")

@@ -2,6 +2,9 @@ package com.vanespark.vertext.ui.assistant
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.vanespark.vertext.domain.ai.GeminiNanoRagAssistant
+import com.vanespark.vertext.domain.ai.GeminiNanoService
+import com.vanespark.vertext.domain.ai.GeminiNanoStatus
 import com.vanespark.vertext.domain.mcp.BuiltInMcpServer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,15 +18,62 @@ import javax.inject.Inject
 
 /**
  * ViewModel for AI assistant
- * Handles natural language queries and MCP tool integration
+ * Handles natural language queries with Gemini Nano RAG or fallback MCP tools
  */
 @HiltViewModel
 class AIAssistantViewModel @Inject constructor(
+    private val geminiNano: GeminiNanoService,
+    private val geminiRagAssistant: GeminiNanoRagAssistant,
     private val mcpServer: BuiltInMcpServer
 ) : ViewModel() {
 
+    private var isGeminiNanoAvailable = false
+    private var isGeminiNanoInitialized = false
+
     private val _uiState = MutableStateFlow(AIAssistantUiState())
     val uiState: StateFlow<AIAssistantUiState> = _uiState.asStateFlow()
+
+    init {
+        // Check Gemini Nano availability on init
+        checkGeminiNanoAvailability()
+    }
+
+    /**
+     * Check if Gemini Nano is available and initialize it
+     */
+    private fun checkGeminiNanoAvailability() {
+        viewModelScope.launch {
+            try {
+                val status = geminiNano.checkAvailability()
+
+                when (status) {
+                    GeminiNanoStatus.AVAILABLE -> {
+                        Timber.d("Gemini Nano is available, initializing...")
+                        val initResult = geminiNano.initialize()
+
+                        if (initResult.isSuccess) {
+                            isGeminiNanoAvailable = true
+                            isGeminiNanoInitialized = true
+                            Timber.d("Gemini Nano initialized successfully - RAG mode enabled!")
+                        } else {
+                            Timber.w("Gemini Nano initialization failed: ${initResult.exceptionOrNull()?.message}")
+                        }
+                    }
+                    GeminiNanoStatus.NOT_AVAILABLE -> {
+                        Timber.d("Gemini Nano is not available on this device - using fallback")
+                        isGeminiNanoAvailable = false
+                    }
+                    else -> {
+                        Timber.d("Gemini Nano status unknown: $status")
+                        isGeminiNanoAvailable = false
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Error checking Gemini Nano availability")
+                isGeminiNanoAvailable = false
+            }
+        }
+    }
 
     /**
      * Show the assistant bottom sheet
@@ -111,9 +161,44 @@ class AIAssistantViewModel @Inject constructor(
     }
 
     /**
-     * Process user query and determine which MCP tool to use
+     * Process user query with Gemini Nano RAG or fallback to rule-based
      */
     private suspend fun processQuery(query: String): AssistantResponse {
+        // If Gemini Nano is available and initialized, use RAG
+        if (isGeminiNanoInitialized) {
+            return try {
+                Timber.d("Using Gemini Nano RAG for query: $query")
+
+                val ragResult = geminiRagAssistant.query(
+                    userQuery = query,
+                    maxContextMessages = 10
+                )
+
+                if (ragResult.isSuccess) {
+                    val response = ragResult.getOrNull()!!
+                    AssistantResponse(
+                        content = response.answer,
+                        toolUsed = "gemini_nano_rag (${response.contextMessages} messages)"
+                    )
+                } else {
+                    // Fallback to rule-based on error
+                    Timber.w("Gemini Nano RAG failed, using fallback: ${ragResult.exceptionOrNull()?.message}")
+                    processQueryFallback(query)
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Error using Gemini Nano RAG")
+                processQueryFallback(query)
+            }
+        }
+
+        // Fallback to rule-based system
+        return processQueryFallback(query)
+    }
+
+    /**
+     * Fallback rule-based query processing (original implementation)
+     */
+    private suspend fun processQueryFallback(query: String): AssistantResponse {
         val lowerQuery = query.lowercase()
 
         // Determine which tool to use based on query
