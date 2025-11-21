@@ -31,6 +31,7 @@ class ChatThreadViewModel @AssistedInject constructor(
     private val threadRepository: ThreadRepository,
     private val contactService: ContactService,
     private val messagingService: MessagingService,
+    private val reactionDetectionService: com.vanespark.vertext.domain.service.ReactionDetectionService,
     @Assisted private val threadId: Long
 ) : ViewModel() {
 
@@ -46,6 +47,24 @@ class ChatThreadViewModel @AssistedInject constructor(
         loadThread()
         loadMessages()
         markThreadAsRead()
+        processUnprocessedReactions()
+    }
+
+    /**
+     * Process any unprocessed reaction messages in this thread
+     * This handles cases where reactions arrived while the app was closed
+     */
+    private fun processUnprocessedReactions() {
+        viewModelScope.launch {
+            try {
+                val processedCount = reactionDetectionService.reprocessThreadForReactions(threadId)
+                if (processedCount > 0) {
+                    Timber.d("Processed $processedCount unprocessed reactions in thread $threadId")
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Error processing unprocessed reactions")
+            }
+        }
     }
 
     /**
@@ -88,8 +107,14 @@ class ChatThreadViewModel @AssistedInject constructor(
                     val thread = _uiState.value.thread
                     val isGroupConversation = thread?.isGroup == true
 
+                    // Filter out reaction messages (REACT:...) that haven't been processed yet
+                    val reactionPattern = Regex("^REACT:(\\d+):(.+)$")
+                    val displayMessages = messages.filter { message ->
+                        !reactionPattern.matches(message.body.trim())
+                    }
+
                     // Convert to UI items
-                    val messageUiItems = messages.map { message ->
+                    val messageUiItems = displayMessages.map { message ->
                         val displayName = when {
                             // For group conversations, show individual sender names
                             isGroupConversation -> {
