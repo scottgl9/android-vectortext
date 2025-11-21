@@ -128,6 +128,25 @@ fun SettingsScreen(
                 )
             }
             item {
+                var showDialog by remember { mutableStateOf(false) }
+                SettingsActionItem(
+                    icon = Icons.Default.Refresh,
+                    title = "Message load limit",
+                    subtitle = "Load ${uiState.messageLoadLimit} most recent messages (tap to change)",
+                    onClick = { showDialog = true }
+                )
+                if (showDialog) {
+                    MessageLoadLimitDialog(
+                        currentLimit = uiState.messageLoadLimit,
+                        onDismiss = { showDialog = false },
+                        onConfirm = { newLimit ->
+                            viewModel.updateMessageLoadLimit(newLimit)
+                            showDialog = false
+                        }
+                    )
+                }
+            }
+            item {
                 SettingsActionItem(
                     icon = Icons.Default.AutoAwesome,
                     title = "Automation Rules",
@@ -1013,6 +1032,65 @@ private fun formatBackupSize(bytes: Long): String {
         bytes < 1024 * 1024 -> String.format("%.2f KB", bytes / 1024.0)
         else -> String.format("%.2f MB", bytes / (1024.0 * 1024.0))
     }
+}
+
+/**
+ * Dialog for editing message load limit
+ */
+@Composable
+private fun MessageLoadLimitDialog(
+    currentLimit: Int,
+    onDismiss: () -> Unit,
+    onConfirm: (Int) -> Unit
+) {
+    var limitText by remember { mutableStateOf(currentLimit.toString()) }
+    var error by remember { mutableStateOf<String?>(null) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Message Load Limit") },
+        text = {
+            Column {
+                Text(
+                    "Set the number of most recent messages to load in conversations. Lower numbers improve performance.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = limitText,
+                    onValueChange = {
+                        limitText = it
+                        error = null
+                    },
+                    label = { Text("Message limit") },
+                    isError = error != null,
+                    supportingText = error?.let { { Text(it) } },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val limit = limitText.toIntOrNull()
+                    when {
+                        limit == null -> error = "Please enter a valid number"
+                        limit < 10 -> error = "Minimum limit is 10 messages"
+                        limit > 10000 -> error = "Maximum limit is 10000 messages"
+                        else -> onConfirm(limit)
+                    }
+                }
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 /**

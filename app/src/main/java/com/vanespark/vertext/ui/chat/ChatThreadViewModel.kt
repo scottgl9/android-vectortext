@@ -1,5 +1,6 @@
 package com.vanespark.vertext.ui.chat
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vanespark.vertext.data.model.Message
@@ -11,6 +12,7 @@ import com.vanespark.vertext.domain.service.MessagingService
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,6 +26,7 @@ import timber.log.Timber
  * Manages message list state, message sending, and user interactions
  */
 class ChatThreadViewModel @AssistedInject constructor(
+    @ApplicationContext private val context: Context,
     private val messageRepository: MessageRepository,
     private val threadRepository: ThreadRepository,
     private val contactService: ContactService,
@@ -63,11 +66,15 @@ class ChatThreadViewModel @AssistedInject constructor(
 
     /**
      * Load messages for this thread
-     * Limited to most recent 100 messages for performance
+     * Limited to most recent N messages for performance (configurable in settings)
      */
     private fun loadMessages() {
         viewModelScope.launch {
-            messageRepository.getMessagesForThreadLimit(threadId, 100)
+            // Get message load limit from settings
+            val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+            val messageLoadLimit = prefs.getInt("message_load_limit", 100)
+
+            messageRepository.getMessagesForThreadLimit(threadId, messageLoadLimit)
                 .catch { e: Throwable ->
                     Timber.e(e, "Error loading messages")
                     _uiState.update {

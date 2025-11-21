@@ -35,6 +35,7 @@ data class SettingsUiState(
     // Messages
     val showDeliveryReports: Boolean = true,
     val showContactNames: Boolean = true,
+    val messageLoadLimit: Int = 100,
 
     // Search & Indexing
     val embeddedMessageCount: Int = 0,
@@ -96,7 +97,8 @@ class SettingsViewModel @Inject constructor(
                         notificationsEnabled = prefs.getBoolean("notifications_enabled", true),
                         vibrateEnabled = prefs.getBoolean("vibrate_enabled", true),
                         showDeliveryReports = prefs.getBoolean("show_delivery_reports", true),
-                        showContactNames = prefs.getBoolean("show_contact_names", true)
+                        showContactNames = prefs.getBoolean("show_contact_names", true),
+                        messageLoadLimit = prefs.getInt("message_load_limit", 100)
                     )
                 }
             } catch (e: Exception) {
@@ -192,6 +194,15 @@ class SettingsViewModel @Inject constructor(
         _uiState.update { it.copy(showContactNames = enabled) }
         saveSetting("show_contact_names", enabled)
         Timber.d("Show contact names: $enabled")
+    }
+
+    /**
+     * Update message load limit setting
+     */
+    fun updateMessageLoadLimit(limit: Int) {
+        _uiState.update { it.copy(messageLoadLimit = limit) }
+        saveSetting("message_load_limit", limit)
+        Timber.d("Message load limit: $limit")
     }
 
     /**
