@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -115,12 +116,15 @@ fun MessageBubble(
         }
 
         // Sender name for incoming group messages
-        if (message.isIncoming && message.isFirstInGroup && message.displayName != message.address) {
+        // Always show sender name for incoming messages when first in group
+        // This helps identify who sent the message in group conversations
+        if (message.isIncoming && message.isFirstInGroup && message.displayName.isNotBlank()) {
             Text(
                 text = message.displayName,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
+                style = MaterialTheme.typography.labelMedium,
+                color = bubbleColor, // Match the bubble color for visual association
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(start = 16.dp, bottom = 2.dp)
             )
         }
 
