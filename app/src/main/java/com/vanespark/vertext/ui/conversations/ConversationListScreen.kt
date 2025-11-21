@@ -12,13 +12,18 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
@@ -89,10 +94,15 @@ fun ConversationListScreen(
                 unreadCount = uiState.unreadCount,
                 isSelectionMode = uiState.isSelectionMode,
                 selectedCount = uiState.selectedConversations.size,
+                totalCount = uiState.conversations.size,
                 onMenuClick = onMenuClick,
                 onSearchClick = onSearchClick,
                 onCancelSelection = { viewModel.clearSelection() },
                 onDeleteSelected = { showDeleteDialog = true },
+                onArchiveSelected = { viewModel.archiveSelected() },
+                onMarkSelectedAsRead = { viewModel.markSelectedAsRead() },
+                onSelectAll = { viewModel.selectAll() },
+                onDeselectAll = { viewModel.clearSelection() },
                 scrollBehavior = scrollBehavior
             )
         },
@@ -180,13 +190,20 @@ private fun ConversationListTopBar(
     unreadCount: Int,
     isSelectionMode: Boolean,
     selectedCount: Int,
+    totalCount: Int,
     onMenuClick: () -> Unit,
     onSearchClick: () -> Unit,
     onCancelSelection: () -> Unit,
     onDeleteSelected: () -> Unit,
+    onArchiveSelected: () -> Unit,
+    onMarkSelectedAsRead: () -> Unit,
+    onSelectAll: () -> Unit,
+    onDeselectAll: () -> Unit,
     scrollBehavior: androidx.compose.material3.TopAppBarScrollBehavior,
     modifier: Modifier = Modifier
 ) {
+    var showMoreMenu by remember { mutableStateOf(false) }
+
     CenterAlignedTopAppBar(
         modifier = modifier,
         title = {
@@ -216,7 +233,29 @@ private fun ConversationListTopBar(
         },
         actions = {
             if (isSelectionMode) {
-                // Delete button when in selection mode
+                // Archive button
+                IconButton(
+                    onClick = onArchiveSelected,
+                    enabled = selectedCount > 0
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Archive,
+                        contentDescription = "Archive selected"
+                    )
+                }
+
+                // Mark as read button
+                IconButton(
+                    onClick = onMarkSelectedAsRead,
+                    enabled = selectedCount > 0
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Mark as read"
+                    )
+                }
+
+                // Delete button
                 IconButton(
                     onClick = onDeleteSelected,
                     enabled = selectedCount > 0
@@ -225,6 +264,50 @@ private fun ConversationListTopBar(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Delete selected"
                     )
+                }
+
+                // More options (Select all/Deselect all)
+                IconButton(onClick = { showMoreMenu = true }) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "More options"
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = showMoreMenu,
+                    onDismissRequest = { showMoreMenu = false }
+                ) {
+                    if (selectedCount < totalCount) {
+                        DropdownMenuItem(
+                            text = { Text("Select all") },
+                            onClick = {
+                                onSelectAll()
+                                showMoreMenu = false
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.SelectAll,
+                                    contentDescription = null
+                                )
+                            }
+                        )
+                    }
+                    if (selectedCount > 0) {
+                        DropdownMenuItem(
+                            text = { Text("Deselect all") },
+                            onClick = {
+                                onDeselectAll()
+                                showMoreMenu = false
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = null
+                                )
+                            }
+                        )
+                    }
                 }
             } else {
                 IconButton(onClick = onSearchClick) {

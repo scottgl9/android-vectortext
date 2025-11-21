@@ -224,6 +224,19 @@ class ConversationListViewModel @Inject constructor(
     }
 
     /**
+     * Select all conversations
+     */
+    fun selectAll() {
+        _uiState.update { state ->
+            val allThreadIds = state.conversations.map { it.threadId }.toSet()
+            state.copy(
+                selectedConversations = allThreadIds,
+                isSelectionMode = true
+            )
+        }
+    }
+
+    /**
      * Archive selected conversations
      */
     fun archiveSelected() {
