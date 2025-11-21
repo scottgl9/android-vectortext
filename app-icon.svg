@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 108 108">
+  <defs>
+    <!-- Gradient Background -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#7C5FDB;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#5541A8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="108" height="108" fill="url(#bgGradient)"/>
+
+  <!-- Message Bubble -->
+  <path
+      fill="#FFFFFF"
+      d="M32,45 C32,40 35,37 40,37 L68,37 C73,37 76,40 76,45 L76,63 C76,68 73,71 68,71 L50,71 L42,79 L42,71 L40,71 C35,71 32,68 32,63 Z" />
+
+  <!-- AI Sparkle - Top Right -->
+  <path
+      fill="#FFD700"
+      d="M70,28 L71.5,31 L74.5,32.5 L71.5,34 L70,37 L68.5,34 L65.5,32.5 L68.5,31 Z" />
+
+  <!-- AI Sparkle - Top Left -->
+  <path
+      fill="#FFD700"
+      d="M38,28 L39,30.5 L41.5,31.5 L39,32.5 L38,35 L37,32.5 L34.5,31.5 L37,30.5 Z" />
+
+  <!-- AI Sparkle - Bottom Right -->
+  <path
+      fill="#FFD700"
+      d="M74,63 L75.5,66 L78.5,67.5 L75.5,69 L74,72 L72.5,69 L69.5,67.5 L72.5,66 Z" />
+
+  <!-- Message Lines Inside Bubble -->
+  <line x1="40" y1="47" x2="68" y2="47" stroke="#6750A4" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="40" y1="54" x2="60" y2="54" stroke="#6750A4" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="40" y1="61" x2="56" y2="61" stroke="#6750A4" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

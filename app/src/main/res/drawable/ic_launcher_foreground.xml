@@ -7,50 +7,50 @@
     <!-- Message Bubble -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M32,38
-                         C32,33 35,30 40,30
-                         L68,30
-                         C73,30 76,33 76,38
-                         L76,56
-                         C76,61 73,64 68,64
-                         L50,64
-                         L42,72
-                         L42,64
-                         L40,64
-                         C35,64 32,61 32,56
+        android:pathData="M32,45
+                         C32,40 35,37 40,37
+                         L68,37
+                         C73,37 76,40 76,45
+                         L76,63
+                         C76,68 73,71 68,71
+                         L50,71
+                         L42,79
+                         L42,71
+                         L40,71
+                         C35,71 32,68 32,63
                          Z" />
 
     <!-- AI Sparkle - Top Right -->
     <path
         android:fillColor="#FFD700"
-        android:pathData="M70,24 L71.5,27 L74.5,28.5 L71.5,30 L70,33 L68.5,30 L65.5,28.5 L68.5,27 Z" />
+        android:pathData="M70,28 L71.5,31 L74.5,32.5 L71.5,34 L70,37 L68.5,34 L65.5,32.5 L68.5,31 Z" />
 
     <!-- AI Sparkle - Top Left -->
     <path
         android:fillColor="#FFD700"
-        android:pathData="M38,24 L39,26.5 L41.5,27.5 L39,28.5 L38,31 L37,28.5 L34.5,27.5 L37,26.5 Z" />
+        android:pathData="M38,28 L39,30.5 L41.5,31.5 L39,32.5 L38,35 L37,32.5 L34.5,31.5 L37,30.5 Z" />
 
     <!-- AI Sparkle - Bottom Right -->
     <path
         android:fillColor="#FFD700"
-        android:pathData="M74,56 L75.5,59 L78.5,60.5 L75.5,62 L74,65 L72.5,62 L69.5,60.5 L72.5,59 Z" />
+        android:pathData="M74,63 L75.5,66 L78.5,67.5 L75.5,69 L74,72 L72.5,69 L69.5,67.5 L72.5,66 Z" />
 
     <!-- Message Lines Inside Bubble -->
     <path
-        android:fillColor="#6750A4"
-        android:pathData="M40,40 L68,40"
+        android:strokeColor="#6750A4"
+        android:pathData="M40,47 L68,47"
         android:strokeWidth="2.5"
         android:strokeLineCap="round" />
 
     <path
-        android:fillColor="#6750A4"
-        android:pathData="M40,47 L60,47"
+        android:strokeColor="#6750A4"
+        android:pathData="M40,54 L60,54"
         android:strokeWidth="2.5"
         android:strokeLineCap="round" />
 
     <path
-        android:fillColor="#6750A4"
-        android:pathData="M40,54 L56,54"
+        android:strokeColor="#6750A4"
+        android:pathData="M40,61 L56,61"
         android:strokeWidth="2.5"
         android:strokeLineCap="round" />
 </vector>
