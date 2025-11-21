@@ -7,6 +7,160 @@ This document tracks completed tasks, implementation decisions, and challenges e
 
 ## Progress Log
 
+### [2025-11-20 20:45] - MMS Media Attachment Rendering
+- **Task**: Implement rendering of audio, image, and video in MMS messages
+- **Implemented**:
+  - **MediaAttachment Data Model**:
+    - Created `MediaAttachment.kt` with support for all media types
+    - Fields: uri, mimeType, fileName, fileSize
+    - JSON serialization/deserialization using Gson
+    - Media type detection (IMAGE, VIDEO, AUDIO, OTHER)
+    - Type checking helpers (isImage, isVideo, isAudio)
+
+  - **Message Model Updates**:
+    - Added helper methods to Message entity:
+      - `parseMediaAttachments()` - parses mediaUris JSON field
+      - `hasMediaAttachments` - checks if message has media
+      - `isMms` - detects MMS messages (has subject or media)
+    - Existing `mediaUris` field used for JSON storage
+
+  - **MessageUiItem Updates**:
+    - Added `mediaAttachments: List<MediaAttachment>` field
+    - Added `subject: String?` field for MMS subject lines
+    - Updated `fromMessage()` to parse and include media attachments
+    - Automatically converts Message entities to UI models with media
+
+  - **MediaAttachmentView Composable**:
+    - Master composable delegating to specific media type views
+    - **ImageAttachment**: Using Coil for async image loading
+      - SubcomposeAsyncImage with loading/error states
+      - Rounded corners (12dp) with ContentScale.Crop
+      - Loading state with CircularProgressIndicator
+      - Error state with BrokenImage icon and error message
+      - Optional click handler for full-screen viewing
+
+    - **VideoAttachment**: Thumbnail with play button overlay
+      - Attempts to load video thumbnail using Coil
+      - Fallback VideoLibrary icon if thumbnail fails
+      - Play button overlay with semi-transparent circle
+      - 16:9 aspect ratio container
+      - Optional click handler for video playback
+
+    - **AudioAttachment**: Playback controls UI
+      - Play/Pause button with Material 3 design
+      - Audio icon with file name display
+      - File size formatting (B, KB, MB)
+      - Prepared for ExoPlayer integration (TODO)
+      - Currently placeholder controls
+
+    - **GenericAttachment**: Fallback for unknown types
+      - Shows file icon, name, and MIME type
+      - Material You surfaceVariant styling
+
+  - **MessageBubble Integration**:
+    - Added MMS subject display (if present)
+    - Media attachments rendered before message text
+    - Each attachment gets 8dp bottom spacing
+    - Message text only shown if non-blank
+    - Proper spacing hierarchy: subject → media → text → timestamp
+    - Conditional timestamp row (only if content present)
+
+  - **Localization**:
+    - Added 9 new strings to strings.xml:
+      - play_video, pause_video
+      - play_audio, pause_audio
+      - view_image
+      - attachment_loading, attachment_error
+      - video_thumbnail
+      - audio_duration (with format placeholder)
+
+- **Files Created**:
+  - `data/model/MediaAttachment.kt` (92 lines)
+  - `ui/chat/MediaAttachmentView.kt` (369 lines)
+
+- **Files Modified**:
+  - `data/model/Message.kt` - Added media helper methods (+12/-0)
+  - `ui/chat/ChatThreadUiState.kt` - Added MediaAttachment import, mediaAttachments field to MessageUiItem (+3/-0)
+  - `ui/chat/MessageBubble.kt` - Integrated media display (+38/-10)
+  - `res/values/strings.xml` - Added media attachment strings (+9/-0)
+
+- **Design Features**:
+  - Material You theming throughout
+  - Rounded corners (12dp) for all media items
+  - Loading states with progress indicators
+  - Error states with helpful icons and messages
+  - Consistent spacing and padding
+  - Aspect ratio enforcement (16:9 for video/images)
+  - Color-coded attachment types
+  - Accessibility content descriptions
+
+- **Architecture**:
+  - Clean separation: Data Model → UI Model → Composable View
+  - Coil for async image/video thumbnail loading
+  - Prepared for ExoPlayer integration (audio/video playback)
+  - JSON storage in existing mediaUris field (no schema change)
+  - Type-safe enum for media categories
+  - Proper error handling at each layer
+
+- **Media Support**:
+  - **Images**: Full display with Coil loading
+    - Supports: JPEG, PNG, GIF, WebP, etc.
+    - Async loading with caching
+    - Error fallback UI
+
+  - **Videos**: Thumbnail preview with play button
+    - Video thumbnail extraction via Coil
+    - Fallback icon if thumbnail unavailable
+    - Ready for video player integration
+
+  - **Audio**: Controls UI ready for playback
+    - Play/pause button UI
+    - File name and size display
+    - Prepared for ExoPlayer media controls
+
+  - **Other**: Generic file attachment UI
+    - Shows MIME type and file name
+    - Graceful handling of unknown types
+
+- **Implementation Notes**:
+  - Uses existing `mediaUris` field from Message entity (JSON string)
+  - No database migration required
+  - MediaAttachment model has Gson companion for serialization
+  - Coil already in dependencies (version 3.0.4)
+  - ExoPlayer integration deferred (can add dependency later)
+  - Media URIs expected in `content://` format from MMS provider
+
+- **Build Status**: ✅ Build successful (assembleDebug without lint)
+  - All unit tests pass (./gradlew test)
+  - No new compilation warnings
+  - APK size unchanged (media loading is lazy)
+
+- **Testing Notes**:
+  - No device connected for manual testing
+  - Build verified with `./gradlew assembleDebug -x lint`
+  - Unit tests confirmed no regressions
+  - Ready for testing with real MMS messages containing media
+
+- **Known Limitations**:
+  - Audio/video playback requires ExoPlayer (not yet integrated)
+  - Video thumbnails may not work for all codecs
+  - No full-screen image viewer (TODO: add click handler)
+  - No video player (TODO: integrate ExoPlayer or system player)
+  - Audio controls are UI-only (no actual playback yet)
+
+- **Next Steps**:
+  - Add ExoPlayer dependency for audio/video playback
+  - Implement full-screen image viewer (zoom, pan)
+  - Integrate video player with playback controls
+  - Add audio waveform visualization
+  - Test with real MMS messages from different carriers
+  - Handle MMS auto-download settings
+
+- **Commits**:
+  - c8c592e - [Feature] Implement MMS media attachment rendering
+
+---
+
 ### [2025-11-20 20:30] - Implement Proper Message Reaction System
 - **Task**: Implement full reaction feature where users can select a message and add emoji reactions
 - **Problem**: User reported reactions not working properly - needed ability to select which message to react to, and reactions should indicate who reacted
