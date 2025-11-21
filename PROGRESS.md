@@ -7,6 +7,114 @@ This document tracks completed tasks, implementation decisions, and challenges e
 
 ## Progress Log
 
+### [2025-11-21 00:30] - Multi-Select Conversations for Batch Deletion
+- **Task**: Implement long-press multi-selection to delete multiple conversations
+- **Context**: Users requested ability to select and delete multiple conversations at once
+- **User Request**: "When long pressing on a conversation from the main screen, allow selecting multiple conversations to delete"
+
+- **Implementation Details**:
+  - **Selection Mode Activation**:
+    - Long-press any conversation card to enter selection mode
+    - ConversationCard already had `combinedClickable` with long-press support
+    - Calls `viewModel.toggleConversationSelection(threadId)` on long press
+
+  - **Visual Feedback** (ConversationCard.kt:68-74):
+    - Selected conversations show `secondaryContainer` background color
+    - Unselected show normal surface color
+    - Already implemented, just leveraged existing `isSelected` parameter
+
+  - **Top Bar Changes** (ConversationListTopBar):
+    - **Normal Mode**:
+      - Menu icon (hamburger) → Opens navigation drawer
+      - Title shows app name ("VerText")
+      - Search icon in actions
+
+    - **Selection Mode**:
+      - Close icon (X) → Exits selection mode
+      - Title shows "$selectedCount selected"
+      - Delete icon in actions → Shows confirmation dialog
+      - Delete button disabled when no selections
+
+  - **Click Behavior** (ConversationListScreen.kt:137-144):
+    ```kotlin
+    onConversationClick = { threadId ->
+        if (uiState.isSelectionMode) {
+            viewModel.toggleConversationSelection(threadId)
+        } else {
+            onConversationClick(threadId)
+        }
+    }
+    ```
+    - In selection mode: Click toggles selection
+    - In normal mode: Click opens conversation
+
+  - **DeleteSelectedDialog** (ConversationListScreen.kt:413-465):
+    - Shows error-colored delete icon
+    - Singular/plural text based on count:
+      - 1 selected: "Delete conversation?"
+      - 2+ selected: "Delete $count conversations?"
+    - Warning text: "permanently deleted...cannot be undone"
+    - Red "Delete" button, gray "Cancel" button
+    - Calls `viewModel.deleteSelected()` on confirm
+
+  - **UI Polish**:
+    - FABs hidden during selection mode (lines 100-131)
+    - Clean interface focused on selection task
+    - Smooth transitions between modes
+
+- **Leveraged Existing Code**:
+  - ViewModel already had complete selection logic:
+    - `isSelectionMode: Boolean`
+    - `selectedConversations: Set<Long>`
+    - `toggleConversationSelection(threadId: Long)`
+    - `clearSelection()`
+    - `deleteSelected()` - loops through selected, calls `messagingService.deleteThread()`
+
+  - ConversationCard already had:
+    - `isSelected` parameter with visual state
+    - `combinedClickable` for long-press
+    - Proper background color changes
+
+- **Files Changed**:
+  - `ConversationListScreen.kt` (+95 lines, -3 lines):
+    - Added imports: `Close`, `Delete` icons, `TextButton`, `mutableStateOf`, `var`
+    - Added `showDeleteDialog` state variable
+    - Updated `ConversationListTopBar` with delete button and close icon
+    - Added conditional click handler for selection mode
+    - Added `DeleteSelectedDialog` composable
+
+- **User Experience Flow**:
+  1. User long-presses conversation card
+  2. Selection mode activates, card shows selected color
+  3. Top bar transforms: Close icon, selection count, delete button
+  4. User taps more conversations to add to selection
+  5. User taps delete button in top bar
+  6. Confirmation dialog appears with warning
+  7. User confirms deletion
+  8. All selected conversations deleted
+  9. Selection mode automatically exits
+  10. Returns to normal conversation list
+
+- **Build Status**: ✅ Successful
+  - All tests passing (54/54)
+  - No errors or warnings
+  - Clean compilation
+
+- **Benefits**:
+  - Bulk deletion saves time for users with many spam conversations
+  - Standard Android UX pattern (Gmail, Messages, Files, etc.)
+  - Safe with confirmation dialog
+  - Clear visual feedback throughout process
+  - Professional, polished interaction
+
+- **Future Enhancements** (not implemented):
+  - Archive selected conversations (already has `archiveSelected()` in ViewModel)
+  - Mark selected as read (already has `markSelectedAsRead()` in ViewModel)
+  - Select all / Deselect all buttons
+  - Swipe to select multiple continuously
+
+---
+
 ### [2025-11-20 23:45] - Real-Time Theme Switching (No App Restart Required)
 - **Task**: Implement real-time theme switching so changes apply immediately
 - **Context**: Theme picker UI complete but required app restart to see changes
