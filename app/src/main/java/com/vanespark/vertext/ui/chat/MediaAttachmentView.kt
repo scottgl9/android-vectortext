@@ -238,82 +238,21 @@ private fun VideoAttachment(
 }
 
 /**
- * Audio attachment view with playback controls
+ * Audio attachment view with playback controls using ExoPlayer
  */
 @Composable
 private fun AudioAttachment(
     attachment: MediaAttachment,
     modifier: Modifier = Modifier
 ) {
-    var isPlaying by remember { mutableStateOf(false) }
+    val uri = Uri.parse(attachment.uri)
 
-    Surface(
+    AudioPlayer(
+        audioUri = uri,
+        fileName = attachment.fileName,
+        fileSize = attachment.fileSize,
         modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp)),
-        color = MaterialTheme.colorScheme.surfaceVariant
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Play/Pause button
-            IconButton(
-                onClick = {
-                    // TODO: Implement actual audio playback with ExoPlayer
-                    isPlaying = !isPlaying
-                },
-                modifier = Modifier.size(48.dp)
-            ) {
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary
-                ) {
-                    Icon(
-                        imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = if (isPlaying) {
-                            stringResource(R.string.pause_audio)
-                        } else {
-                            stringResource(R.string.play_audio)
-                        },
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.padding(12.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            // Audio icon and filename
-            Icon(
-                imageVector = Icons.Default.MusicNote,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(24.dp)
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = attachment.fileName ?: "Audio message",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                // TODO: Show actual duration when implementing ExoPlayer
-                if (attachment.fileSize != null) {
-                    Text(
-                        text = formatFileSize(attachment.fileSize),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                    )
-                }
-            }
-        }
-    }
+    )
 }
 
 /**

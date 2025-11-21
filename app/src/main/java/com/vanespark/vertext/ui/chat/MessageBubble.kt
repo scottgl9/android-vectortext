@@ -1,5 +1,6 @@
 package com.vanespark.vertext.ui.chat
 
+import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -24,6 +25,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,6 +50,10 @@ fun MessageBubble(
     onLongPress: (MessageUiItem) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // State for showing media dialogs
+    var imageToView by remember { mutableStateOf<Uri?>(null) }
+    var videoToPlay by remember { mutableStateOf<Uri?>(null) }
+
     // Determine bubble alignment and color
     val alignment = if (message.isIncoming) Alignment.CenterStart else Alignment.CenterEnd
 
@@ -167,8 +176,8 @@ fun MessageBubble(
                             MediaAttachmentView(
                                 attachment = attachment,
                                 modifier = Modifier.fillMaxWidth(),
-                                onImageClick = { /* TODO: Open image viewer */ },
-                                onVideoClick = { /* TODO: Open video player */ }
+                                onImageClick = { uri -> imageToView = uri },
+                                onVideoClick = { uri -> videoToPlay = uri }
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                         }
@@ -238,6 +247,22 @@ fun MessageBubble(
 
         // Spacing between messages
         Spacer(modifier = Modifier.height(if (message.isLastInGroup) 12.dp else 2.dp))
+    }
+
+    // Show image viewer dialog if needed
+    imageToView?.let { uri ->
+        ImageViewerDialog(
+            imageUri = uri,
+            onDismiss = { imageToView = null }
+        )
+    }
+
+    // Show video player dialog if needed
+    videoToPlay?.let { uri ->
+        VideoPlayerDialog(
+            videoUri = uri,
+            onDismiss = { videoToPlay = null }
+        )
     }
 }
 

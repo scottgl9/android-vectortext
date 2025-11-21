@@ -126,6 +126,12 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-compose:3.0.4")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.0.4")
 
+    // ExoPlayer for video/audio playback
+    val exoPlayerVersion = "1.5.0"
+    implementation("androidx.media3:media3-exoplayer:$exoPlayerVersion")
+    implementation("androidx.media3:media3-ui:$exoPlayerVersion")
+    implementation("androidx.media3:media3-common:$exoPlayerVersion")
+
     // Timber for logging
     implementation("com.jakewharton.timber:timber:5.0.1")
 
