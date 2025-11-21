@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 5,
-    "identityHash": "b9b5cd3080160b92b30f5000977c50a7",
+    "identityHash": "5b7f2b5c440f43943c70fcddc199f759",
     "entities": [
       {
         "tableName": "messages",
@@ -101,6 +101,16 @@
         },
         "indices": [
           {
+            "name": "index_messages_thread_id_date",
+            "unique": false,
+            "columnNames": [
+              "thread_id",
+              "date"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_messages_thread_id_date` ON `${TABLE_NAME}` (`thread_id`, `date`)"
+          },
+          {
             "name": "index_messages_thread_id",
             "unique": false,
             "columnNames": [
@@ -135,6 +145,15 @@
             ],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_messages_last_indexed` ON `${TABLE_NAME}` (`last_indexed`)"
+          },
+          {
+            "name": "index_messages_type",
+            "unique": false,
+            "columnNames": [
+              "type"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_messages_type` ON `${TABLE_NAME}` (`type`)"
           }
         ],
         "foreignKeys": [
@@ -502,7 +521,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b9b5cd3080160b92b30f5000977c50a7')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5b7f2b5c440f43943c70fcddc199f759')"
     ]
   }
 }

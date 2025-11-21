@@ -30,6 +30,9 @@
     <!-- POST_NOTIFICATIONS for Android 13+ -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Declare telephony hardware feature for Chrome OS compatibility -->
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
+
     <application
         android:name=".VectorTextApplication"
         android:allowBackup="true"

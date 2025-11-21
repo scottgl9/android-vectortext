@@ -1,5 +1,6 @@
 package com.vanespark.vertext.data.provider
 
+import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
@@ -31,15 +32,15 @@ class SmsProviderService @Inject constructor(
     private val contentResolver: ContentResolver = context.contentResolver
 
     // Cache the user's phone number to avoid repeated lookups
-    private val userPhoneNumber: String? by lazy {
-        try {
+    private val userPhoneNumber: String?
+        @SuppressLint("MissingPermission") // Permission is handled by try-catch and app requires READ_SMS
+        get() = try {
             val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
             telephonyManager?.line1Number?.takeIf { it.isNotBlank() }
         } catch (e: Exception) {
             Timber.e(e, "Error getting user phone number")
             null
         }
-    }
 
     /**
      * Read all SMS messages from the system provider

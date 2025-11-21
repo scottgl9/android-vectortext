@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
 import com.vanespark.vertext.data.repository.ThreadRepository
 import com.vanespark.vertext.domain.service.PermissionManager
-import com.vanespark.vertext.domain.service.SmsSyncService
+import com.vanespark.vertext.domain.service.ThreadSyncService
 import com.vanespark.vertext.ui.archived.ArchivedConversationsScreen
 import com.vanespark.vertext.ui.blocked.BlockedContactsScreen
 import com.vanespark.vertext.ui.chat.ChatThreadScreen
@@ -50,7 +50,7 @@ class MainActivity : ComponentActivity() {
     lateinit var permissionManager: PermissionManager
 
     @Inject
-    lateinit var smsSyncService: SmsSyncService
+    lateinit var threadSyncService: ThreadSyncService
 
     @Inject
     lateinit var chatThreadViewModelFactory: ChatThreadViewModel.Factory
@@ -88,7 +88,7 @@ class MainActivity : ComponentActivity() {
                     LaunchedEffect(hasPermissions) {
                         if (hasPermissions) {
                             scope.launch {
-                                hasSynced = smsSyncService.hasCompletedInitialSync()
+                                hasSynced = threadSyncService.hasCompletedInitialSync()
                                 isCheckingSync = false
                             }
                         } else {
