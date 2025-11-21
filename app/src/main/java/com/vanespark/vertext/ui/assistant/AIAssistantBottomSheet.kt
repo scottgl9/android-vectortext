@@ -49,7 +49,9 @@ fun AIAssistantBottomSheet(
             AIAssistantHeader(
                 onDismiss = onDismiss,
                 onClearHistory = onClearHistory,
-                hasMessages = uiState.messages.isNotEmpty()
+                hasMessages = uiState.messages.isNotEmpty(),
+                backendMode = uiState.backendMode,
+                isInitializing = uiState.isInitializing
             )
 
             HorizontalDivider()
@@ -82,6 +84,8 @@ private fun AIAssistantHeader(
     onDismiss: () -> Unit,
     onClearHistory: () -> Unit,
     hasMessages: Boolean,
+    backendMode: AIBackendMode,
+    isInitializing: Boolean,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -107,11 +111,42 @@ private fun AIAssistantHeader(
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
-                Text(
-                    text = "Ask about your messages",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    if (isInitializing) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(10.dp),
+                            strokeWidth = 1.5.dp
+                        )
+                        Text(
+                            text = "Initializing...",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .background(
+                                    color = if (backendMode == AIBackendMode.GEMINI_NANO)
+                                        MaterialTheme.colorScheme.primary
+                                    else
+                                        MaterialTheme.colorScheme.outline,
+                                    shape = RoundedCornerShape(4.dp)
+                                )
+                        )
+                        Text(
+                            text = if (backendMode == AIBackendMode.GEMINI_NANO)
+                                "Gemini Nano (on-device)"
+                            else
+                                "Search mode",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
         }
 

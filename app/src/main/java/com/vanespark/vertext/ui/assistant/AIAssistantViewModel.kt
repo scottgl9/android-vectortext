@@ -54,23 +54,44 @@ class AIAssistantViewModel @Inject constructor(
                         if (initResult.isSuccess) {
                             isGeminiNanoAvailable = true
                             isGeminiNanoInitialized = true
+                            geminiRagAssistant.startConversation()
+                            _uiState.update { it.copy(
+                                backendMode = AIBackendMode.GEMINI_NANO,
+                                isInitializing = false
+                            )}
                             Timber.d("Gemini Nano initialized successfully - RAG mode enabled!")
                         } else {
                             Timber.w("Gemini Nano initialization failed: ${initResult.exceptionOrNull()?.message}")
+                            _uiState.update { it.copy(
+                                backendMode = AIBackendMode.FALLBACK,
+                                isInitializing = false
+                            )}
                         }
                     }
                     GeminiNanoStatus.NOT_AVAILABLE -> {
                         Timber.d("Gemini Nano is not available on this device - using fallback")
                         isGeminiNanoAvailable = false
+                        _uiState.update { it.copy(
+                            backendMode = AIBackendMode.FALLBACK,
+                            isInitializing = false
+                        )}
                     }
                     else -> {
                         Timber.d("Gemini Nano status unknown: $status")
                         isGeminiNanoAvailable = false
+                        _uiState.update { it.copy(
+                            backendMode = AIBackendMode.FALLBACK,
+                            isInitializing = false
+                        )}
                     }
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error checking Gemini Nano availability")
                 isGeminiNanoAvailable = false
+                _uiState.update { it.copy(
+                    backendMode = AIBackendMode.FALLBACK,
+                    isInitializing = false
+                )}
             }
         }
     }
@@ -164,21 +185,26 @@ class AIAssistantViewModel @Inject constructor(
      * Process user query with Gemini Nano RAG or fallback to rule-based
      */
     private suspend fun processQuery(query: String): AssistantResponse {
-        // If Gemini Nano is available and initialized, use RAG
+        // If Gemini Nano is available and initialized, use RAG with conversation
         if (isGeminiNanoInitialized) {
             return try {
                 Timber.d("Using Gemini Nano RAG for query: $query")
 
-                val ragResult = geminiRagAssistant.query(
-                    userQuery = query,
+                // Use conversation-based RAG for multi-turn support
+                val ragResult = geminiRagAssistant.sendMessageInConversation(
+                    userMessage = query,
                     maxContextMessages = 10
                 )
 
                 if (ragResult.isSuccess) {
                     val response = ragResult.getOrNull()!!
+                    val contextInfo = if (response.contextMessages > 0)
+                        "${response.contextMessages} messages"
+                    else
+                        "chat"
                     AssistantResponse(
                         content = response.answer,
-                        toolUsed = "gemini_nano_rag (${response.contextMessages} messages)"
+                        toolUsed = "gemini_nano ($contextInfo)"
                     )
                 } else {
                     // Fallback to rule-based on error
@@ -401,6 +427,11 @@ class AIAssistantViewModel @Inject constructor(
      */
     fun clearHistory() {
         _uiState.update { it.copy(messages = emptyList()) }
+        // Also reset Gemini Nano conversation if active
+        if (isGeminiNanoInitialized) {
+            geminiRagAssistant.endConversation()
+            geminiRagAssistant.startConversation()
+        }
     }
 
     /**

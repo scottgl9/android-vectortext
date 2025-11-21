@@ -1,6 +1,14 @@
 package com.vanespark.vertext.ui.assistant
 
 /**
+ * AI backend mode
+ */
+enum class AIBackendMode {
+    GEMINI_NANO,  // On-device Gemini Nano with RAG
+    FALLBACK      // Rule-based MCP tool calls
+}
+
+/**
  * UI state for AI assistant
  */
 data class AIAssistantUiState(
@@ -8,7 +16,9 @@ data class AIAssistantUiState(
     val messages: List<AIMessage> = emptyList(),
     val isProcessing: Boolean = false,
     val inputText: String = "",
-    val error: String? = null
+    val error: String? = null,
+    val backendMode: AIBackendMode = AIBackendMode.FALLBACK,
+    val isInitializing: Boolean = true
 )
 
 /**
