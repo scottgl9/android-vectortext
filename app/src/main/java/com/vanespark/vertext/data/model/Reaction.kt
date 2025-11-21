@@ -72,19 +72,28 @@ data class Reaction(
             if (trimmed.isEmpty()) return null
 
             // Check if it's a single emoji or emoji sequence
-            // Common emoji reactions are usually 1-3 characters
-            if (trimmed.length > 10) return null
+            // Common emoji reactions are usually short (up to a few codepoints)
+            // but we need to check codepoint count, not character count
+            val codePoints = trimmed.codePoints().toArray()
+
+            // Allow up to 5 codepoints (accounts for emoji with modifiers/skin tones)
+            if (codePoints.size > 5) return null
 
             // Check if it contains only emoji characters
             // This is a simple heuristic - emoji are in specific Unicode ranges
-            val hasOnlyEmoji = trimmed.all { char ->
-                // Emoji ranges (simplified check)
-                char.code in 0x1F300..0x1F9FF || // Miscellaneous Symbols and Pictographs
-                char.code in 0x2600..0x26FF ||   // Miscellaneous Symbols
-                char.code in 0x2700..0x27BF ||   // Dingbats
-                char.code == 0xFE0F ||           // Variation Selector
-                char.code == 0x200D ||           // Zero Width Joiner (for complex emoji)
-                char.code in 0x1F1E6..0x1F1FF    // Regional Indicator Symbols (flags)
+            val hasOnlyEmoji = codePoints.all { codePoint ->
+                // Emoji ranges (using full Unicode code points, not UTF-16 chars)
+                codePoint in 0x1F300..0x1F9FF || // Miscellaneous Symbols and Pictographs
+                codePoint in 0x2600..0x26FF ||   // Miscellaneous Symbols
+                codePoint in 0x2700..0x27BF ||   // Dingbats
+                codePoint == 0xFE0F ||           // Variation Selector
+                codePoint == 0x200D ||           // Zero Width Joiner (for complex emoji)
+                codePoint in 0x1F1E6..0x1F1FF || // Regional Indicator Symbols (flags)
+                codePoint in 0x1F600..0x1F64F || // Emoticons
+                codePoint in 0x1F680..0x1F6FF || // Transport and Map Symbols
+                codePoint in 0x1F900..0x1F9FF || // Supplemental Symbols and Pictographs
+                codePoint in 0x2B50..0x2BFF ||   // Miscellaneous Symbols (includes ⭐)
+                codePoint in 0x1F004..0x1F0CF    // Mahjong, playing cards
             }
 
             return if (hasOnlyEmoji) trimmed else null

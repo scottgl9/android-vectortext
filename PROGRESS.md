@@ -7,6 +7,32 @@ This document tracks completed tasks, implementation decisions, and challenges e
 
 ## Progress Log
 
+### [2025-11-20 20:00] - Fix Emoji Reaction Detection
+- **Task**: Fix emoji reaction detection not working
+- **Problem**: User reported: "I'm still seeing the problem with the reaction not showing on the message, and it is showing on a separate message"
+- **Root Cause**: The emoji detection logic in `Reaction.detectEmojiReaction()` was using `Char.code` (16-bit UTF-16 code units) to check against Unicode code point ranges like `0x1F300..0x1F9FF`. Most modern emojis (👍, 😊, ❤️, etc.) use code points beyond U+FFFF, which are represented as surrogate pairs in UTF-16. When iterating over `String` as `Char` values, these emojis were split into two 16-bit halves that didn't match any of the emoji ranges, causing the detection to always fail.
+
+- **Implemented**:
+  - Updated `Reaction.detectEmojiReaction()` to use `.codePoints()` for proper Unicode code point iteration
+  - Changed from checking individual `Char` (16-bit) to checking full Unicode code points
+  - Expanded emoji ranges to cover more emoji categories:
+    - Added Emoticons range (0x1F600..0x1F64F)
+    - Added Transport and Map Symbols (0x1F680..0x1F6FF)
+    - Added Supplemental Symbols (0x1F900..0x1F9FF)
+    - Added Miscellaneous Symbols (0x2B50..0x2BFF)
+    - Added Mahjong/playing cards (0x1F004..0x1F0CF)
+  - Changed limit from 10 characters to 5 code points (accounts for emoji with modifiers/skin tones)
+
+- **Files Modified**:
+  - `app/src/main/java/com/vanespark/vertext/data/model/Reaction.kt`: Fixed emoji detection (+20/-10)
+    - Changed from `trimmed.all { char -> }` to `trimmed.codePoints().toArray().all { codePoint -> }`
+    - Updated all range checks to use full 32-bit Unicode code points
+    - Added comprehensive emoji range coverage
+
+- **Impact**: Emoji reactions should now be properly detected and attached to target messages instead of appearing as separate messages. The reaction detection service will automatically process new emoji messages and delete them after adding the reaction to the target message.
+
+- **Testing**: Built and installed on device. Users can now send emoji reactions (single emoji messages within 30 seconds of a previous message) and they will be displayed as reactions on the target message instead of separate messages.
+
 ### [2025-11-20 19:45] - Configurable Message Load Limit
 - **Task**: Make message loading limit configurable to improve performance
 - **Problem**: User reported: "The messages take a long time to load, could we just load the most recent 100 messages, and make it configurable?"
