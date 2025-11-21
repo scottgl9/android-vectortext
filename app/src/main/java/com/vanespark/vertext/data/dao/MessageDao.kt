@@ -154,4 +154,19 @@ interface MessageDao {
      */
     @Query("SELECT * FROM messages ORDER BY date DESC")
     suspend fun getAllMessages(): List<Message>
+
+    // === Reaction Operations ===
+
+    /**
+     * Update reactions for a message
+     */
+    @Query("UPDATE messages SET reactions = :reactions WHERE id = :messageId")
+    suspend fun updateReactions(messageId: Long, reactions: String?)
+
+    /**
+     * Get the most recent message in a thread before a given timestamp
+     * Used for detecting which message a reaction applies to
+     */
+    @Query("SELECT * FROM messages WHERE thread_id = :threadId AND date < :beforeTimestamp AND body != '' ORDER BY date DESC LIMIT 1")
+    suspend fun getLastMessageBeforeTimestamp(threadId: Long, beforeTimestamp: Long): Message?
 }

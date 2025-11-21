@@ -8,6 +8,7 @@ import android.telephony.SmsMessage
 import com.vanespark.vertext.data.model.Message
 import com.vanespark.vertext.data.repository.MessageRepository
 import com.vanespark.vertext.data.repository.ThreadRepository
+import com.vanespark.vertext.domain.service.ReactionDetectionService
 import com.vanespark.vertext.domain.service.RuleEngine
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -32,6 +33,9 @@ class SmsReceiver : BroadcastReceiver() {
 
     @Inject
     lateinit var ruleEngine: RuleEngine
+
+    @Inject
+    lateinit var reactionDetectionService: ReactionDetectionService
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -87,9 +91,23 @@ class SmsReceiver : BroadcastReceiver() {
                 val messageId = messageRepository.insertMessage(message)
                 Timber.d("Inserted received SMS with ID: $messageId")
 
+                val savedMessage = message.copy(id = messageId)
+
+                // Check if this is an emoji reaction to a previous message
+                try {
+                    val isReaction = reactionDetectionService.processMessageForReaction(savedMessage)
+                    if (isReaction) {
+                        Timber.d("Message $messageId was processed as a reaction")
+                        // Don't process reactions through rules or update thread
+                        // The message was deleted and stored as a reaction
+                        return@launch
+                    }
+                } catch (e: Exception) {
+                    Timber.e(e, "Error detecting reaction for message $messageId")
+                }
+
                 // Process message through rule engine
                 try {
-                    val savedMessage = message.copy(id = messageId)
                     ruleEngine.processMessage(savedMessage)
                     Timber.d("Processed message $messageId through rule engine")
                 } catch (e: Exception) {

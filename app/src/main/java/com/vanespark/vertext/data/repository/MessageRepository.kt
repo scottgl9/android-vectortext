@@ -177,4 +177,32 @@ class MessageRepository @Inject constructor(
     suspend fun deleteAllMessages() {
         messageDao.deleteAll()
     }
+
+    // === Reaction Operations ===
+
+    suspend fun updateReactions(messageId: Long, reactions: String?) {
+        messageDao.updateReactions(messageId, reactions)
+    }
+
+    suspend fun getLastMessageBeforeTimestamp(threadId: Long, beforeTimestamp: Long): Message? {
+        return messageDao.getLastMessageBeforeTimestamp(threadId, beforeTimestamp)
+    }
+
+    /**
+     * Add a reaction to a message
+     */
+    suspend fun addReaction(messageId: Long, emoji: String, sender: String, timestamp: Long, senderName: String? = null) {
+        val message = messageDao.getById(messageId) ?: return
+        val updatedMessage = message.addReaction(emoji, sender, timestamp, senderName)
+        messageDao.updateReactions(messageId, updatedMessage.reactions)
+    }
+
+    /**
+     * Remove a reaction from a message
+     */
+    suspend fun removeReaction(messageId: Long, emoji: String, sender: String) {
+        val message = messageDao.getById(messageId) ?: return
+        val updatedMessage = message.removeReaction(emoji, sender)
+        messageDao.updateReactions(messageId, updatedMessage.reactions)
+    }
 }

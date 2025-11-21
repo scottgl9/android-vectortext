@@ -200,6 +200,15 @@ fun MessageBubble(
             }
         }
 
+        // Reactions
+        if (message.reactions.isNotEmpty()) {
+            ReactionRow(
+                reactions = message.reactions,
+                isOutgoing = !message.isIncoming,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
         // Spacing between messages
         Spacer(modifier = Modifier.height(if (message.isLastInGroup) 12.dp else 2.dp))
     }

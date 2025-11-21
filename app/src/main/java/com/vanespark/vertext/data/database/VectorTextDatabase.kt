@@ -27,7 +27,7 @@ import com.vanespark.vertext.data.model.Thread
         BlockedContact::class,
         Rule::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = true
 )
 @TypeConverters(RuleTypeConverters::class)

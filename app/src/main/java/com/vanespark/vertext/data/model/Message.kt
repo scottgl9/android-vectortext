@@ -69,6 +69,9 @@ data class Message(
     @ColumnInfo(name = "media_uris")
     val mediaUris: String? = null,
 
+    /** Reactions to this message (JSON array as string) */
+    val reactions: String? = null,
+
     // === RAG/Embedding fields ===
 
     /**
@@ -111,4 +114,31 @@ data class Message(
     /** Helper to check if message has embedding */
     val hasEmbedding: Boolean
         get() = !embedding.isNullOrEmpty()
+
+    /** Get parsed reactions list */
+    fun parseReactions(): List<Reaction> = Reaction.fromJson(reactions)
+
+    /** Check if message has any reactions */
+    val hasReactions: Boolean
+        get() = !reactions.isNullOrBlank()
+
+    /** Add a reaction to this message */
+    fun addReaction(emoji: String, sender: String, timestamp: Long, senderName: String? = null): Message {
+        val currentReactions = parseReactions().toMutableList()
+
+        // Remove existing reaction from same sender with same emoji
+        currentReactions.removeAll { it.sender == sender && it.emoji == emoji }
+
+        // Add new reaction
+        currentReactions.add(Reaction(emoji, sender, timestamp, senderName))
+
+        return copy(reactions = Reaction.toJson(currentReactions))
+    }
+
+    /** Remove a reaction from this message */
+    fun removeReaction(emoji: String, sender: String): Message {
+        val currentReactions = parseReactions().toMutableList()
+        currentReactions.removeAll { it.sender == sender && it.emoji == emoji }
+        return copy(reactions = Reaction.toJson(currentReactions))
+    }
 }

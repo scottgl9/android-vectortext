@@ -1,6 +1,7 @@
 package com.vanespark.vertext.ui.chat
 
 import com.vanespark.vertext.data.model.Message
+import com.vanespark.vertext.data.model.Reaction
 import com.vanespark.vertext.data.model.Thread
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -33,6 +34,7 @@ data class MessageUiItem(
     val displayName: String,
     val formattedTime: String,
     val formattedDate: String,
+    val reactions: List<Reaction> = emptyList(),
     val isFirstInGroup: Boolean = false,
     val isLastInGroup: Boolean = false
 ) {
@@ -65,7 +67,8 @@ data class MessageUiItem(
                 isFailed = isFailed,
                 displayName = displayName,
                 formattedTime = formatTime(message.date),
-                formattedDate = formatDate(message.date)
+                formattedDate = formatDate(message.date),
+                reactions = message.parseReactions()
             )
         }
 
