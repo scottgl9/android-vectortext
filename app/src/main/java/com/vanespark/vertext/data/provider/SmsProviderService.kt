@@ -3,9 +3,11 @@ package com.vanespark.vertext.data.provider
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
+import android.provider.ContactsContract
 import android.provider.Telephony
 import com.vanespark.vertext.data.model.Message
 import com.vanespark.vertext.data.model.Thread
+import com.vanespark.vertext.data.repository.ContactRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -21,7 +23,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class SmsProviderService @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val contactRepository: ContactRepository
 ) {
 
     private val contentResolver: ContentResolver = context.contentResolver
@@ -314,19 +317,31 @@ class SmsProviderService @Inject constructor(
             if (recipients.size > 1) {
                 // This is a group conversation
                 val recipientsJson = JSONArray(recipients).toString()
-                val displayName = recipients.joinToString(", ").take(50) +
-                    if (recipients.joinToString(", ").length > 50) "..." else ""
+
+                // Look up contact names for each recipient from Android Contacts
+                val recipientNames = recipients.map { phone ->
+                    getContactNameForPhone(phone)
+                }
+
+                // Generate display name from contact names
+                val displayName = when {
+                    recipientNames.size <= 3 -> recipientNames.joinToString(", ")
+                    else -> "${recipientNames.take(3).joinToString(", ")} +${recipientNames.size - 3}"
+                }
 
                 threadsMap[threadId] = thread.copy(
                     recipient = displayName,
                     isGroup = true,
                     recipients = recipientsJson
                 )
-                Timber.d("Thread $threadId is a group with ${recipients.size} recipients: $recipients")
+                Timber.d("Thread $threadId is a group with ${recipients.size} recipients: $recipientNames")
             } else if (thread.recipient == "Loading...") {
-                // Single recipient MMS - update with actual recipient
+                // Single recipient MMS - update with actual recipient (name or phone)
+                val phone = recipients.firstOrNull() ?: "Unknown"
+                val displayName = getContactNameForPhone(phone)
+
                 threadsMap[threadId] = thread.copy(
-                    recipient = recipients.firstOrNull() ?: "Unknown"
+                    recipient = displayName
                 )
             }
         }
@@ -425,6 +440,39 @@ class SmsProviderService @Inject constructor(
         }
 
         return recipients
+    }
+
+    /**
+     * Look up contact name from Android's Contacts Provider
+     * Falls back to phone number if no contact found
+     */
+    private fun getContactNameForPhone(phoneNumber: String): String {
+        val uri = Uri.withAppendedPath(
+            ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
+            Uri.encode(phoneNumber)
+        )
+
+        try {
+            contentResolver.query(
+                uri,
+                arrayOf(ContactsContract.PhoneLookup.DISPLAY_NAME),
+                null,
+                null,
+                null
+            )?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val nameIndex = cursor.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME)
+                    val name = if (nameIndex >= 0) cursor.getString(nameIndex) else null
+                    if (!name.isNullOrBlank()) {
+                        return name
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error looking up contact name for $phoneNumber")
+        }
+
+        return phoneNumber // Fallback to phone number
     }
 
     /**
