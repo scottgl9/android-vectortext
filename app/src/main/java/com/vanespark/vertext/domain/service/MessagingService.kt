@@ -19,7 +19,8 @@ import javax.inject.Singleton
 class MessagingService @Inject constructor(
     private val messageRepository: MessageRepository,
     private val threadRepository: ThreadRepository,
-    private val smsSenderService: SmsSenderService
+    private val smsSenderService: SmsSenderService,
+    private val reactionDetectionService: ReactionDetectionService
 ) {
 
     /**
@@ -60,11 +61,23 @@ class MessagingService @Inject constructor(
 
             if (sendResult.isSuccess) {
                 // Update message type to SENT
-                messageRepository.updateMessage(
-                    message.copy(id = messageId, type = Message.TYPE_SENT)
-                )
+                val sentMessage = message.copy(id = messageId, type = Message.TYPE_SENT)
+                messageRepository.updateMessage(sentMessage)
 
-                // Update thread metadata
+                // Check if this is an emoji reaction to a previous message
+                try {
+                    val isReaction = reactionDetectionService.processMessageForReaction(sentMessage)
+                    if (isReaction) {
+                        Timber.d("Outgoing message $messageId was processed as a reaction")
+                        // Don't update thread metadata for reactions
+                        // The message was deleted and stored as a reaction
+                        return@withContext Result.success(messageId)
+                    }
+                } catch (e: Exception) {
+                    Timber.e(e, "Error detecting reaction for outgoing message $messageId")
+                }
+
+                // Update thread metadata (only if not a reaction)
                 threadRepository.updateLastMessage(
                     threadId = thread.id,
                     message = messageText,
