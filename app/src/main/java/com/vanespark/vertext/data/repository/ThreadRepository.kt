@@ -55,6 +55,10 @@ class ThreadRepository @Inject constructor(
         return threadDao.getByRecipient(recipient)
     }
 
+    suspend fun getThreadsByRecipient(recipient: String): List<Thread> {
+        return threadDao.getAllByRecipient(recipient)
+    }
+
     fun getAllThreads(): Flow<List<Thread>> {
         return threadDao.getAllThreads()
     }

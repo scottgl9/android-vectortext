@@ -44,6 +44,9 @@ interface ThreadDao {
     @Query("SELECT * FROM threads WHERE recipient = :recipient LIMIT 1")
     suspend fun getByRecipient(recipient: String): Thread?
 
+    @Query("SELECT * FROM threads WHERE recipient = :recipient ORDER BY last_message_date DESC")
+    suspend fun getAllByRecipient(recipient: String): List<Thread>
+
     @Query("SELECT * FROM threads WHERE is_archived = 0 ORDER BY is_pinned DESC, last_message_date DESC")
     fun getAllThreads(): Flow<List<Thread>>
 
