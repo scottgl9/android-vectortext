@@ -1,7 +1,10 @@
 package com.vanespark.vertext.ui.chat
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -31,10 +35,12 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -78,6 +84,7 @@ fun ChatThreadScreen(
     var showMenu by remember { mutableStateOf(false) }
     var selectedMessage by remember { mutableStateOf<MessageUiItem?>(null) }
     var showMessageActions by remember { mutableStateOf(false) }
+    var showReactionPicker by remember { mutableStateOf(false) }
 
     // Show error snackbar
     LaunchedEffect(uiState.error) {
@@ -266,6 +273,16 @@ fun ChatThreadScreen(
                         selectedMessage = null
                     }
                 ) {
+                    // Only allow reacting to other people's messages, not your own
+                    if (selectedMessage?.isIncoming == true) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.react)) },
+                            onClick = {
+                                showMessageActions = false
+                                showReactionPicker = true
+                            }
+                        )
+                    }
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.copy)) },
                         onClick = {
@@ -293,6 +310,23 @@ fun ChatThreadScreen(
                         }
                     )
                 }
+            }
+
+            // Reaction picker dialog
+            if (showReactionPicker && selectedMessage != null) {
+                ReactionPickerDialog(
+                    onDismiss = {
+                        showReactionPicker = false
+                        selectedMessage = null
+                    },
+                    onReactionSelected = { emoji ->
+                        selectedMessage?.let { message ->
+                            viewModel.sendReaction(message, emoji)
+                        }
+                        showReactionPicker = false
+                        selectedMessage = null
+                    }
+                )
             }
         }
     }
@@ -386,4 +420,54 @@ private fun MessageComposer(
             }
         }
     }
+}
+
+/**
+ * Reaction picker dialog
+ * Shows common emoji reactions for the user to select
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ReactionPickerDialog(
+    onDismiss: () -> Unit,
+    onReactionSelected: (String) -> Unit
+) {
+    val commonReactions = listOf(
+        "👍", "👎", "❤️", "😂", "😮", "😢",
+        "🎉", "🔥", "👏", "🙏", "💯", "✅"
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.react_to_message)) },
+        text = {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                commonReactions.forEach { emoji ->
+                    Surface(
+                        onClick = { onReactionSelected(emoji) },
+                        modifier = Modifier.size(56.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                text = emoji,
+                                fontSize = 28.sp
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
+    )
 }

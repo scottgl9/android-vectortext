@@ -66,7 +66,7 @@ fun ReactionRow(
 }
 
 /**
- * Individual reaction bubble showing emoji and count
+ * Individual reaction bubble showing emoji, count, and sender
  */
 @Composable
 private fun ReactionBubble(
@@ -90,11 +90,21 @@ private fun ReactionBubble(
             Text(
                 text = emoji,
                 fontSize = 16.sp,
-                modifier = Modifier.padding(end = if (count > 1) 4.dp else 0.dp)
+                modifier = Modifier.padding(end = 4.dp)
             )
 
-            // Count (only show if more than 1)
-            if (count > 1) {
+            // Show sender name for single reactions, or count for multiple
+            if (count == 1 && senders.isNotEmpty()) {
+                // Single reaction - show who reacted
+                Text(
+                    text = senders.first(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 11.sp,
+                    maxLines = 1
+                )
+            } else if (count > 1) {
+                // Multiple reactions - show count
                 Text(
                     text = count.toString(),
                     style = MaterialTheme.typography.labelSmall,

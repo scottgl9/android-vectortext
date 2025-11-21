@@ -33,7 +33,53 @@ class ReactionDetectionService @Inject constructor(
      * @return True if message was detected and processed as a reaction
      */
     suspend fun processMessageForReaction(message: Message): Boolean {
-        // Detect if this message is a single emoji
+        // Check if message is in the new reaction format: REACT:[timestamp]:[emoji]
+        val reactionPattern = Regex("^REACT:(\\d+):(.+)$")
+        val matchResult = reactionPattern.matchEntire(message.body.trim())
+
+        if (matchResult != null) {
+            // New format: explicit reaction with target timestamp
+            val (timestampStr, emoji) = matchResult.destructured
+            val targetTimestamp = timestampStr.toLongOrNull() ?: return false
+
+            Timber.d("Detected explicit reaction: $emoji targeting timestamp $targetTimestamp")
+
+            // Find the message with this exact timestamp
+            val targetMessage = messageRepository.getMessageByTimestamp(
+                threadId = message.threadId,
+                timestamp = targetTimestamp
+            )
+
+            if (targetMessage == null) {
+                Timber.d("No message found with timestamp $targetTimestamp")
+                return false
+            }
+
+            // Get sender name for display
+            val senderName = if (message.type == Message.TYPE_SENT) {
+                "You"
+            } else {
+                contactService.getContactName(message.address) ?: message.address
+            }
+
+            // Add reaction to target message
+            messageRepository.addReaction(
+                messageId = targetMessage.id,
+                emoji = emoji,
+                sender = message.address,
+                timestamp = message.date,
+                senderName = senderName
+            )
+
+            Timber.d("Added reaction $emoji to message ${targetMessage.id} from $senderName")
+
+            // Delete the reaction message since it's now stored as a reaction
+            messageRepository.deleteMessageById(message.id)
+
+            return true
+        }
+
+        // Fallback: Check if this message is a single emoji (legacy behavior)
         val emoji = Reaction.detectEmojiReaction(message.body) ?: return false
 
         Timber.d("Detected potential emoji reaction: $emoji from ${message.address}")

@@ -148,6 +148,36 @@ class ChatThreadViewModel @AssistedInject constructor(
     }
 
     /**
+     * Send a reaction to a specific message
+     * Encodes the target message timestamp so the recipient can identify which message was reacted to
+     */
+    fun sendReaction(targetMessage: MessageUiItem, emoji: String) {
+        val thread = _uiState.value.thread ?: run {
+            Timber.e("Cannot send reaction: thread is null")
+            _uiState.update { it.copy(error = "Failed to send reaction") }
+            return
+        }
+
+        // Encode reaction with target message timestamp
+        // Format: REACT:[timestamp]:[emoji]
+        val reactionMessage = "REACT:${targetMessage.timestamp}:$emoji"
+
+        viewModelScope.launch {
+            messagingService.sendSmsMessage(
+                recipientAddress = thread.recipient,
+                messageText = reactionMessage
+            )
+                .onSuccess {
+                    Timber.d("Reaction sent successfully to message ${targetMessage.id}")
+                }
+                .onFailure { e ->
+                    Timber.e(e, "Failed to send reaction")
+                    _uiState.update { it.copy(error = "Failed to send reaction: ${e.message}") }
+                }
+        }
+    }
+
+    /**
      * Send the composed message
      */
     fun sendMessage() {

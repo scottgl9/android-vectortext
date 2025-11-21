@@ -169,4 +169,11 @@ interface MessageDao {
      */
     @Query("SELECT * FROM messages WHERE thread_id = :threadId AND date < :beforeTimestamp AND body != '' ORDER BY date DESC LIMIT 1")
     suspend fun getLastMessageBeforeTimestamp(threadId: Long, beforeTimestamp: Long): Message?
+
+    /**
+     * Get a message by its exact timestamp in a thread
+     * Used for finding the target message of a reaction
+     */
+    @Query("SELECT * FROM messages WHERE thread_id = :threadId AND date = :timestamp LIMIT 1")
+    suspend fun getMessageByTimestamp(threadId: Long, timestamp: Long): Message?
 }

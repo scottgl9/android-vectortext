@@ -189,6 +189,13 @@ class MessageRepository @Inject constructor(
     }
 
     /**
+     * Get a message by its exact timestamp in a thread
+     */
+    suspend fun getMessageByTimestamp(threadId: Long, timestamp: Long): Message? {
+        return messageDao.getMessageByTimestamp(threadId, timestamp)
+    }
+
+    /**
      * Add a reaction to a message
      */
     suspend fun addReaction(messageId: Long, emoji: String, sender: String, timestamp: Long, senderName: String? = null) {
