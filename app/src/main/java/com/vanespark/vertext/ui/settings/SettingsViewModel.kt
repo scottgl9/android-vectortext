@@ -10,6 +10,7 @@ import com.vanespark.vertext.data.repository.MessageRepository
 import com.vanespark.vertext.data.repository.ThreadRepository
 import com.vanespark.vertext.domain.service.ThreadCategorizationService
 import com.vanespark.vertext.domain.worker.EmbeddingGenerationWorker
+import com.vanespark.vertext.ui.theme.ColorTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,6 +27,8 @@ import javax.inject.Inject
 data class SettingsUiState(
     // Appearance
     val theme: ThemeMode = ThemeMode.SYSTEM,
+    val colorTheme: ColorTheme = ColorTheme.DEFAULT,
+    val useDynamicColor: Boolean = false,
     val useAmoledBlack: Boolean = false,
 
     // Notifications
@@ -93,6 +96,10 @@ class SettingsViewModel @Inject constructor(
                         theme = ThemeMode.valueOf(
                             prefs.getString("theme", ThemeMode.SYSTEM.name) ?: ThemeMode.SYSTEM.name
                         ),
+                        colorTheme = ColorTheme.fromName(
+                            prefs.getString("color_theme", ColorTheme.DEFAULT.name) ?: ColorTheme.DEFAULT.name
+                        ),
+                        useDynamicColor = prefs.getBoolean("use_dynamic_color", false),
                         useAmoledBlack = prefs.getBoolean("use_amoled_black", false),
                         notificationsEnabled = prefs.getBoolean("notifications_enabled", true),
                         vibrateEnabled = prefs.getBoolean("vibrate_enabled", true),
@@ -149,6 +156,24 @@ class SettingsViewModel @Inject constructor(
         _uiState.update { it.copy(theme = theme) }
         saveSetting("theme", theme.name)
         Timber.d("Theme updated to: $theme")
+    }
+
+    /**
+     * Update color theme setting
+     */
+    fun updateColorTheme(colorTheme: ColorTheme) {
+        _uiState.update { it.copy(colorTheme = colorTheme) }
+        saveSetting("color_theme", colorTheme.name)
+        Timber.d("Color theme updated to: $colorTheme")
+    }
+
+    /**
+     * Update dynamic color setting
+     */
+    fun updateDynamicColor(enabled: Boolean) {
+        _uiState.update { it.copy(useDynamicColor = enabled) }
+        saveSetting("use_dynamic_color", enabled)
+        Timber.d("Dynamic color: $enabled")
     }
 
     /**

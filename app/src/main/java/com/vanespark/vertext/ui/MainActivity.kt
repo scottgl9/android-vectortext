@@ -1,9 +1,11 @@
 package com.vanespark.vertext.ui
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
@@ -32,7 +34,9 @@ import com.vanespark.vertext.ui.permissions.PermissionsScreen
 import com.vanespark.vertext.ui.rules.RulesScreen
 import com.vanespark.vertext.ui.search.SearchScreen
 import com.vanespark.vertext.ui.settings.SettingsScreen
+import com.vanespark.vertext.ui.settings.ThemeMode
 import com.vanespark.vertext.ui.sync.SyncScreen
+import com.vanespark.vertext.ui.theme.ColorTheme
 import com.vanespark.vertext.ui.theme.VectorTextTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -63,7 +67,31 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            VectorTextTheme {
+            // Load theme settings from SharedPreferences
+            val prefs = remember { getSharedPreferences("settings", Context.MODE_PRIVATE) }
+            val themeMode = remember {
+                ThemeMode.valueOf(prefs.getString("theme", ThemeMode.SYSTEM.name) ?: ThemeMode.SYSTEM.name)
+            }
+            val colorTheme = remember {
+                ColorTheme.fromName(prefs.getString("color_theme", ColorTheme.DEFAULT.name) ?: ColorTheme.DEFAULT.name)
+            }
+            val useDynamicColor = remember { prefs.getBoolean("use_dynamic_color", false) }
+            val useAmoledBlack = remember { prefs.getBoolean("use_amoled_black", false) }
+
+            // Determine dark theme based on ThemeMode
+            val systemInDarkTheme = isSystemInDarkTheme()
+            val darkTheme = when (themeMode) {
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+                ThemeMode.SYSTEM -> systemInDarkTheme
+            }
+
+            VectorTextTheme(
+                darkTheme = darkTheme,
+                dynamicColor = useDynamicColor,
+                colorTheme = colorTheme,
+                amoledBlack = useAmoledBlack
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
