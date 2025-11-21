@@ -1,6 +1,7 @@
 package com.vanespark.vertext.ui.settings
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.vanespark.vertext.R
+import com.vanespark.vertext.ui.theme.ColorTheme
 
 /**
  * Settings screen for app configuration
@@ -69,6 +71,21 @@ fun SettingsScreen(
                 ThemeSettingItem(
                     currentTheme = uiState.theme,
                     onThemeChange = { viewModel.updateTheme(it) }
+                )
+            }
+            item {
+                ColorThemeSettingItem(
+                    currentColorTheme = uiState.colorTheme,
+                    onColorThemeChange = { viewModel.updateColorTheme(it) }
+                )
+            }
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.Default.ColorLens,
+                    title = "Dynamic Color (Material You)",
+                    subtitle = "Use system wallpaper colors (Android 12+)",
+                    checked = uiState.useDynamicColor,
+                    onCheckedChange = { viewModel.updateDynamicColor(it) }
                 )
             }
             item {
@@ -278,11 +295,11 @@ private fun ThemeSettingItem(
 
     ListItem(
         modifier = modifier.clickable { expanded = true },
-        headlineContent = { Text("Theme") },
+        headlineContent = { Text("Theme Mode") },
         supportingContent = { Text(currentTheme.displayName) },
         leadingContent = {
             Icon(
-                imageVector = Icons.Default.Palette,
+                imageVector = Icons.Default.Brightness6,
                 contentDescription = null
             )
         },
@@ -310,6 +327,236 @@ private fun ThemeSettingItem(
                 } else null
             )
         }
+    }
+}
+
+/**
+ * Color theme selection setting item with visual previews
+ */
+@Composable
+private fun ColorThemeSettingItem(
+    currentColorTheme: ColorTheme,
+    onColorThemeChange: (ColorTheme) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showThemePicker by remember { mutableStateOf(false) }
+
+    ListItem(
+        modifier = modifier.clickable { showThemePicker = true },
+        headlineContent = { Text("Color Theme") },
+        supportingContent = { Text(currentColorTheme.displayName) },
+        leadingContent = {
+            Icon(
+                imageVector = Icons.Default.Palette,
+                contentDescription = null
+            )
+        },
+        trailingContent = {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Show preview colors from current theme
+                ColorThemePreviewDots(colorTheme = currentColorTheme)
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = null
+                )
+            }
+        }
+    )
+
+    // Full-screen theme picker dialog
+    if (showThemePicker) {
+        ThemePickerDialog(
+            currentTheme = currentColorTheme,
+            onThemeSelected = { theme ->
+                onColorThemeChange(theme)
+                showThemePicker = false
+            },
+            onDismiss = { showThemePicker = false }
+        )
+    }
+}
+
+/**
+ * Small color dots showing theme preview
+ */
+@Composable
+private fun ColorThemePreviewDots(
+    colorTheme: ColorTheme,
+    modifier: Modifier = Modifier
+) {
+    val scheme = colorTheme.lightScheme
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        listOf(scheme.primary, scheme.secondary, scheme.tertiary).forEach { color ->
+            Box(
+                modifier = Modifier
+                    .size(12.dp)
+                    .background(color, shape = MaterialTheme.shapes.extraSmall)
+            )
+        }
+    }
+}
+
+/**
+ * Full-screen theme picker dialog with large preview cards
+ */
+@Composable
+private fun ThemePickerDialog(
+    currentTheme: ColorTheme,
+    onThemeSelected: (ColorTheme) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Choose Color Theme") },
+        text = {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(ColorTheme.entries.size) { index ->
+                    val theme = ColorTheme.entries[index]
+                    ThemePreviewCard(
+                        colorTheme = theme,
+                        isSelected = theme == currentTheme,
+                        onClick = { onThemeSelected(theme) }
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+/**
+ * Theme preview card showing colors and name
+ */
+@Composable
+private fun ThemePreviewCard(
+    colorTheme: ColorTheme,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val lightScheme = colorTheme.lightScheme
+    val darkScheme = colorTheme.darkScheme
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        border = if (isSelected) {
+            androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+        } else null,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Theme name and selection indicator
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = colorTheme.displayName,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                if (isSelected) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Selected",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            // Light theme preview
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Light:",
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.width(40.dp)
+                )
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    ColorSwatch(color = lightScheme.primary, label = "Primary", modifier = Modifier.weight(1f))
+                    ColorSwatch(color = lightScheme.secondary, label = "Secondary", modifier = Modifier.weight(1f))
+                    ColorSwatch(color = lightScheme.tertiary, label = "Tertiary", modifier = Modifier.weight(1f))
+                }
+            }
+
+            // Dark theme preview
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Dark:",
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.width(40.dp)
+                )
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    ColorSwatch(color = darkScheme.primary, label = "Primary", modifier = Modifier.weight(1f))
+                    ColorSwatch(color = darkScheme.secondary, label = "Secondary", modifier = Modifier.weight(1f))
+                    ColorSwatch(color = darkScheme.tertiary, label = "Tertiary", modifier = Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Individual color swatch with label
+ */
+@Composable
+private fun ColorSwatch(
+    color: androidx.compose.ui.graphics.Color,
+    label: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(40.dp)
+                .background(color, shape = MaterialTheme.shapes.small)
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
