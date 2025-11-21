@@ -7,6 +7,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Message
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -231,7 +233,7 @@ private fun OverviewCards(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         StatCard(
-            icon = Icons.Default.Message,
+            icon = Icons.AutoMirrored.Filled.Message,
             title = "Total",
             value = insights.totalMessages.toString(),
             modifier = Modifier.weight(1f),
@@ -239,7 +241,7 @@ private fun OverviewCards(
         )
 
         StatCard(
-            icon = Icons.Default.Send,
+            icon = Icons.AutoMirrored.Filled.Send,
             title = "Sent",
             value = insights.sentMessages.toString(),
             modifier = Modifier.weight(1f),

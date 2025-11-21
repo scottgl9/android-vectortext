@@ -105,7 +105,7 @@ fun RuleEditorDialog(
 
                     // Triggers Section
                     item {
-                        Divider()
+                        HorizontalDivider()
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "When (Triggers)",
@@ -140,7 +140,7 @@ fun RuleEditorDialog(
 
                     // Conditions Section
                     item {
-                        Divider()
+                        HorizontalDivider()
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "If (Conditions - Optional)",
@@ -175,7 +175,7 @@ fun RuleEditorDialog(
 
                     // Actions Section
                     item {
-                        Divider()
+                        HorizontalDivider()
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "Then (Actions)",

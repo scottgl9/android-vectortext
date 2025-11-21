@@ -337,7 +337,7 @@ private fun RuleCard(
 
             // Details (expanded)
             if (expanded) {
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
                 // Triggers
                 Text(

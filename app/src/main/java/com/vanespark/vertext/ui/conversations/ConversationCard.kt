@@ -15,9 +15,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
@@ -134,7 +134,7 @@ fun ConversationCard(
                         // Muted indicator
                         if (conversation.isMuted) {
                             Icon(
-                                imageVector = Icons.Default.VolumeOff,
+                                imageVector = Icons.AutoMirrored.Filled.VolumeOff,
                                 contentDescription = "Muted",
                                 modifier = Modifier.size(16.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant

@@ -987,7 +987,7 @@ private fun BackupManagementItem(
                 }
             }
 
-            Divider()
+            HorizontalDivider()
 
             // Backup progress
             if (backupUiState.backupProgress != null) {
@@ -1006,7 +1006,7 @@ private fun BackupManagementItem(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                Divider()
+                HorizontalDivider()
             }
 
             // Restore progress
@@ -1026,7 +1026,7 @@ private fun BackupManagementItem(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                Divider()
+                HorizontalDivider()
             }
 
             // Error message
@@ -1108,7 +1108,7 @@ private fun BackupManagementItem(
 
             // Backup list
             if (backupUiState.backups.isNotEmpty()) {
-                Divider()
+                HorizontalDivider()
                 Text(
                     text = "Available Backups (${backupUiState.backups.size})",
                     style = MaterialTheme.typography.titleSmall,

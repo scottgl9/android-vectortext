@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -701,7 +702,7 @@ private fun ActionTypeList(onSelectType: (ActionType) -> Unit) {
     ) {
         item {
             ActionTypeItem(
-                icon = Icons.Default.Reply,
+                icon = Icons.AutoMirrored.Filled.Reply,
                 title = "Auto-Reply",
                 description = "Send automatic reply",
                 onClick = { onSelectType(ActionType.AUTO_REPLY) }

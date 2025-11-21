@@ -4,11 +4,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Insights
-import androidx.compose.material.icons.filled.Message
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.HorizontalDivider
@@ -70,7 +70,7 @@ fun AppNavigationDrawer(
                             onNavigateToConversations()
                         }
                     },
-                    icon = { Icon(Icons.Default.Message, contentDescription = null) },
+                    icon = { Icon(Icons.AutoMirrored.Filled.Message, contentDescription = null) },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
 

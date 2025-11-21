@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -341,7 +342,7 @@ private fun QuickStatsCard(
                     value = stats.totalMessages.toString()
                 )
                 StatItem(
-                    icon = Icons.Default.Send,
+                    icon = Icons.AutoMirrored.Filled.Send,
                     label = "Sent",
                     value = stats.sentMessages.toString()
                 )

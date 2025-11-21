@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Message
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -73,7 +75,7 @@ fun ThreadSummaryBottomSheet(
                 }
             }
 
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
             // Content
             when {
@@ -243,7 +245,7 @@ private fun StatsCard(
                 )
             }
 
-            Divider(color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.3f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.3f))
 
             // Stats grid
             Row(
@@ -251,12 +253,12 @@ private fun StatsCard(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 StatItem(
-                    icon = Icons.Default.Message,
+                    icon = Icons.AutoMirrored.Filled.Message,
                     label = "Messages",
                     value = summary.messageCount.toString()
                 )
                 StatItem(
-                    icon = Icons.Default.Send,
+                    icon = Icons.AutoMirrored.Filled.Send,
                     label = "Sent",
                     value = summary.sentCount.toString()
                 )
@@ -269,7 +271,7 @@ private fun StatsCard(
 
             // Date range
             if (summary.firstMessageDate != null && summary.lastMessageDate != null) {
-                Divider(color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.3f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.3f))
 
                 val dateFormat = SimpleDateFormat("MMM d, yyyy", Locale.US)
                 Text(
@@ -362,7 +364,7 @@ private fun ExcerptItem(
                 ) {
                     Icon(
                         imageVector = when (excerpt.type) {
-                            ExcerptType.SENT -> Icons.Default.Send
+                            ExcerptType.SENT -> Icons.AutoMirrored.Filled.Send
                             ExcerptType.RECEIVED -> Icons.Default.Inbox
                             ExcerptType.SEPARATOR -> Icons.Default.MoreHoriz
                         },
