@@ -4,9 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vanespark.vertext.data.model.Message
 import com.vanespark.vertext.data.model.Thread
-import com.vanespark.vertext.data.repository.ContactRepository
 import com.vanespark.vertext.data.repository.MessageRepository
 import com.vanespark.vertext.data.repository.ThreadRepository
+import com.vanespark.vertext.domain.service.ContactService
 import com.vanespark.vertext.domain.service.MessagingService
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -26,7 +26,7 @@ import timber.log.Timber
 class ChatThreadViewModel @AssistedInject constructor(
     private val messageRepository: MessageRepository,
     private val threadRepository: ThreadRepository,
-    private val contactRepository: ContactRepository,
+    private val contactService: ContactService,
     private val messagingService: MessagingService,
     @Assisted private val threadId: Long
 ) : ViewModel() {
@@ -89,9 +89,8 @@ class ChatThreadViewModel @AssistedInject constructor(
                                     // Outgoing message from user
                                     "You"
                                 } else {
-                                    // Incoming message - look up contact name
-                                    val contact = contactRepository.getContactByPhone(message.address)
-                                    contact?.name ?: message.address
+                                    // Incoming message - look up contact name from system
+                                    contactService.getContactName(message.address) ?: message.address
                                 }
                             }
                             // For 1-on-1 conversations, use thread recipient name
