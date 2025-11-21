@@ -1,5 +1,15 @@
 # VectorText TODO List
 
+## Current Issues (High Priority)
+
+### Bug Fixes
+- [ ] Fix broken Insights feature
+  - Acceptance criteria: Insights screen displays data correctly and functions as before
+  - Dependencies: Investigate what broke after recent changes (possibly related to Icon updates)
+  - Testing: Verify all insights calculations and UI display work correctly
+
+---
+
 ## Phase 1 — Messaging Core + Beautiful UI Foundation ✨ [COMPLETED]
 
 ### Foundation Setup ✅
