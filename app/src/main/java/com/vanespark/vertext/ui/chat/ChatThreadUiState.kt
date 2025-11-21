@@ -35,8 +35,9 @@ data class MessageUiItem(
     val displayName: String,
     val formattedTime: String,
     val formattedDate: String,
-    val reactions: List<Reaction> = emptyList(),
-    val mediaAttachments: List<MediaAttachment> = emptyList(),
+    // Cached parsed data - no need to re-parse JSON on every recomposition
+    val reactions: List<Reaction>,
+    val mediaAttachments: List<MediaAttachment>,
     val subject: String? = null,
     val isFirstInGroup: Boolean = false,
     val isLastInGroup: Boolean = false

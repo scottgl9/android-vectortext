@@ -43,6 +43,9 @@ class ChatThreadViewModel @AssistedInject constructor(
     private val _uiState = MutableStateFlow(ChatThreadUiState(isLoading = true))
     val uiState: StateFlow<ChatThreadUiState> = _uiState.asStateFlow()
 
+    // Cache contact names to avoid repeated lookups (especially for group chats)
+    private val contactNameCache = mutableMapOf<String, String>()
+
     init {
         loadThread()
         loadMessages()
@@ -84,6 +87,27 @@ class ChatThreadViewModel @AssistedInject constructor(
     }
 
     /**
+     * Get display name for a message sender, with caching for performance
+     * Avoids repeated contact lookups, especially important for group chats
+     */
+    private suspend fun getDisplayName(address: String, isGroupConversation: Boolean, messageType: Int): String {
+        // For 1-on-1 conversations, use thread recipient name
+        if (!isGroupConversation) {
+            return _uiState.value.thread?.recipientName ?: address
+        }
+
+        // For outgoing messages in groups, always "You"
+        if (messageType == 2) {
+            return "You"
+        }
+
+        // For incoming messages in groups, use cached contact name lookup
+        return contactNameCache.getOrPut(address) {
+            contactService.getContactName(address) ?: address
+        }
+    }
+
+    /**
      * Load messages for this thread
      * Limited to most recent N messages for performance (configurable in settings)
      */
@@ -114,22 +138,9 @@ class ChatThreadViewModel @AssistedInject constructor(
                         !googleReactionPattern.matches(message.body.trim())
                     }
 
-                    // Convert to UI items
+                    // Convert to UI items with cached contact name lookups
                     val messageUiItems = displayMessages.map { message ->
-                        val displayName = when {
-                            // For group conversations, show individual sender names
-                            isGroupConversation -> {
-                                if (message.type == 2) {
-                                    // Outgoing message from user
-                                    "You"
-                                } else {
-                                    // Incoming message - look up contact name from system
-                                    contactService.getContactName(message.address) ?: message.address
-                                }
-                            }
-                            // For 1-on-1 conversations, use thread recipient name
-                            else -> thread?.recipientName ?: message.address
-                        }
+                        val displayName = getDisplayName(message.address, isGroupConversation, message.type)
 
                         MessageUiItem.fromMessage(
                             message = message,
@@ -148,7 +159,7 @@ class ChatThreadViewModel @AssistedInject constructor(
                     }
 
                     if (isGroupConversation) {
-                        Timber.d("Loaded ${messages.size} messages for group conversation")
+                        Timber.d("Loaded ${messages.size} messages for group conversation (${contactNameCache.size} contacts cached)")
                     }
                 }
         }

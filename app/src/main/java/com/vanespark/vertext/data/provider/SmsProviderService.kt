@@ -260,6 +260,170 @@ class SmsProviderService @Inject constructor(
         }
 
     /**
+     * Read both SMS and MMS messages for a specific thread (combined and sorted)
+     * This is the primary method for loading messages in the UI - queries provider directly
+     */
+    suspend fun readMessagesForThread(
+        threadId: Long,
+        limit: Int = 100
+    ): List<Message> = withContext(Dispatchers.IO) {
+        try {
+            // Read both SMS and MMS for this thread
+            val smsMessages = readSmsMessagesForThread(threadId, limit)
+            val mmsMessages = readMmsMessagesForThread(threadId, limit)
+
+            // Combine and sort by date (newest first), then take limit
+            val allMessages = (smsMessages + mmsMessages)
+                .sortedByDescending { it.date }
+                .take(limit)
+
+            Timber.d("Read ${allMessages.size} messages for thread $threadId (${smsMessages.size} SMS + ${mmsMessages.size} MMS)")
+            allMessages
+        } catch (e: Exception) {
+            Timber.e(e, "Error reading messages for thread $threadId")
+            emptyList()
+        }
+    }
+
+    /**
+     * Read MMS messages for a specific thread
+     */
+    private suspend fun readMmsMessagesForThread(
+        threadId: Long,
+        limit: Int? = null
+    ): List<Message> = withContext(Dispatchers.IO) {
+        val messages = mutableListOf<Message>()
+        val uri = Uri.parse("content://mms")
+
+        val projection = arrayOf(
+            "_id",
+            "thread_id",
+            "date",
+            "read",
+            "sub",
+            "msg_box"
+        )
+
+        val selection = "thread_id = ?"
+        val selectionArgs = arrayOf(threadId.toString())
+        val sortOrder = "date DESC${if (limit != null) " LIMIT $limit" else ""}"
+
+        try {
+            contentResolver.query(
+                uri,
+                projection,
+                selection,
+                selectionArgs,
+                sortOrder
+            )?.use { cursor ->
+                val idIndex = cursor.getColumnIndex("_id")
+                val threadIdIndex = cursor.getColumnIndex("thread_id")
+                val dateIndex = cursor.getColumnIndex("date")
+                val readIndex = cursor.getColumnIndex("read")
+                val subIndex = cursor.getColumnIndex("sub")
+                val msgBoxIndex = cursor.getColumnIndex("msg_box")
+
+                while (cursor.moveToNext()) {
+                    val mmsId = if (idIndex >= 0) cursor.getLong(idIndex) else continue
+                    val msgThreadId = if (threadIdIndex >= 0) cursor.getLong(threadIdIndex) else threadId
+                    val date = if (dateIndex >= 0) cursor.getLong(dateIndex) * 1000 else 0L
+                    val isRead = if (readIndex >= 0) cursor.getInt(readIndex) == 1 else false
+                    val subject = if (subIndex >= 0) cursor.getString(subIndex) else null
+                    val msgBox = if (msgBoxIndex >= 0) cursor.getInt(msgBoxIndex) else 1
+
+                    // Get MMS body and media
+                    val body = getMmsBody(mmsId) ?: ""
+                    val mediaUris = getMmsMedia(mmsId)
+
+                    val messageType = when (msgBox) {
+                        2 -> 2  // Sent
+                        3 -> 3  // Draft
+                        4 -> 3  // Outbox -> treat as draft
+                        else -> 1  // Inbox
+                    }
+
+                    val address = if (msgBox == 1) {
+                        getMmsSender(mmsId) ?: "Unknown"
+                    } else {
+                        getMmsRecipients(mmsId).firstOrNull() ?: "Unknown"
+                    }
+
+                    messages.add(
+                        Message(
+                            id = mmsId,
+                            threadId = msgThreadId,
+                            address = address,
+                            body = body,
+                            date = date,
+                            type = messageType,
+                            isRead = isRead,
+                            subject = subject,
+                            mediaUris = mediaUris
+                        )
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error reading MMS messages for thread $threadId")
+        }
+
+        return@withContext messages
+    }
+
+    /**
+     * Get media attachments from an MMS message as JSON string
+     */
+    private fun getMmsMedia(mmsId: Long): String? {
+        val attachments = mutableListOf<com.vanespark.vertext.data.model.MediaAttachment>()
+        val uri = Uri.parse("content://mms/part")
+        val selection = "mid = ?"
+        val selectionArgs = arrayOf(mmsId.toString())
+
+        try {
+            contentResolver.query(
+                uri,
+                arrayOf("_id", "ct", "_data", "text"),
+                selection,
+                selectionArgs,
+                null
+            )?.use { cursor ->
+                val idIndex = cursor.getColumnIndex("_id")
+                val ctIndex = cursor.getColumnIndex("ct")
+
+                while (cursor.moveToNext()) {
+                    val partId = if (idIndex >= 0) cursor.getLong(idIndex) else continue
+                    val contentType = if (ctIndex >= 0) cursor.getString(ctIndex) else null
+
+                    // Skip text parts (already got body)
+                    if (contentType == "text/plain") continue
+
+                    // Only include media types (image, video, audio)
+                    if (contentType != null && (
+                        contentType.startsWith("image/") ||
+                        contentType.startsWith("video/") ||
+                        contentType.startsWith("audio/")
+                    )) {
+                        val partUri = "content://mms/part/$partId"
+
+                        attachments.add(
+                            com.vanespark.vertext.data.model.MediaAttachment(
+                                uri = partUri,
+                                mimeType = contentType,
+                                fileName = null,
+                                fileSize = null
+                            )
+                        )
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error getting MMS media for $mmsId")
+        }
+
+        return if (attachments.isEmpty()) null else com.vanespark.vertext.data.model.MediaAttachment.toJson(attachments)
+    }
+
+    /**
      * Read all conversation threads from the system provider
      * Now includes MMS support and group conversation detection
      */

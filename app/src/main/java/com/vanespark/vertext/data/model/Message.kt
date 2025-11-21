@@ -13,10 +13,12 @@ import androidx.room.PrimaryKey
 @Entity(
     tableName = "messages",
     indices = [
+        Index(value = ["thread_id", "date"]),  // Composite index for "ORDER BY date" queries
         Index(value = ["thread_id"]),
         Index(value = ["address"]),
         Index(value = ["date"]),
-        Index(value = ["last_indexed"])
+        Index(value = ["last_indexed"]),
+        Index(value = ["type"])  // For filtering by message type
     ],
     foreignKeys = [
         ForeignKey(
