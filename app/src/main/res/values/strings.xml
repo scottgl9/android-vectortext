@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">VerText</string>
+    <string name="app_name">Vertext</string>
 
     <!-- Main Screen -->
     <string name="conversations">Conversations</string>
@@ -37,17 +37,17 @@
 
     <!-- Permissions -->
     <string name="sms_permission_required">SMS permission required</string>
-    <string name="sms_permission_rationale">VerText needs SMS permissions to send and receive messages</string>
+    <string name="sms_permission_rationale">Vertext needs SMS permissions to send and receive messages</string>
     <string name="grant_permission">Grant Permission</string>
     <string name="default_sms_app_required">Set as default messaging app</string>
-    <string name="default_sms_app_rationale">VerText needs to be your default messaging app to function properly</string>
+    <string name="default_sms_app_rationale">Vertext needs to be your default messaging app to function properly</string>
     <string name="set_as_default">Set as default</string>
     <string name="setup_permissions">Setup Permissions</string>
-    <string name="setup_permissions_description">VerText needs a few permissions to send and receive text messages</string>
+    <string name="setup_permissions_description">Vertext needs a few permissions to send and receive text messages</string>
     <string name="sms_permissions">SMS Permissions</string>
     <string name="sms_permissions_description">Required to send, receive, and read text messages</string>
     <string name="default_sms_app">Default Messaging App</string>
-    <string name="default_sms_app_description">VerText must be your default messaging app to handle SMS</string>
+    <string name="default_sms_app_description">Vertext must be your default messaging app to handle SMS</string>
     <string name="continue_to_app">Continue to App</string>
 
     <!-- Sync -->

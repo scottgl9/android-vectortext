@@ -1,4 +1,4 @@
-# VerText - AI-Powered Android Messaging App
+# Vertext - AI-Powered Android Messaging App
 
 An intelligent, feature-rich SMS/MMS messaging application for Android with semantic search, AI assistance, and beautiful Material You design.
 

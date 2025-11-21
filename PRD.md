@@ -1,7 +1,7 @@
-# VerText Product Requirements Document (PRD)
+# Vertext Product Requirements Document (PRD)
 
 ## 1. Overview
-VerText is a full-featured Android SMS/MMS/RCS messaging application and AI-enhanced communication platform. It replaces the default Android messaging app and introduces on-device semantic search using a vector store, plus a built-in Model Context Protocol (MCP) server for local AI tool access.  
+Vertext is a full-featured Android SMS/MMS/RCS messaging application and AI-enhanced communication platform. It replaces the default Android messaging app and introduces on-device semantic search using a vector store, plus a built-in Model Context Protocol (MCP) server for local AI tool access.  
 Package name: **com.vanespark.vectortext**
 
 ## 2. Product Goals
@@ -89,7 +89,7 @@ Runs fully on-device as a **Built-in MCP Server** (following android-pocketgem-a
 - Local encrypted backup/restore option.
 
 ### 3.5 UI/UX — Beautiful & Modern Design
-**Design Philosophy:** VerText aims to be the most visually stunning messaging app on Android, combining cutting-edge AI features with a polished, intuitive interface that delights users.
+**Design Philosophy:** Vertext aims to be the most visually stunning messaging app on Android, combining cutting-edge AI features with a polished, intuitive interface that delights users.
 
 **Built with Material You (Material 3):**
 - **Dynamic Color System**: Full Material You theming that adapts to user's wallpaper
@@ -612,7 +612,7 @@ The TF-IDF embedding and similarity search implementation is based on **android-
 - Add sender/recipient metadata to search results
 
 ## 8. Name & Branding
-**App name:** VerText
+**App name:** Vertext
 **Package ID:** com.vanespark.vectortext
 
 **Brand Identity:**

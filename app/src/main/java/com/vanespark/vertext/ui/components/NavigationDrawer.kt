@@ -28,7 +28,7 @@ import com.vanespark.vertext.R
 import kotlinx.coroutines.launch
 
 /**
- * Navigation drawer for VerText
+ * Navigation drawer for Vertext
  * Provides access to main app sections
  */
 @Composable

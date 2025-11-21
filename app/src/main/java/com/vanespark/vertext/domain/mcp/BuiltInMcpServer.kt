@@ -202,7 +202,7 @@ class BuiltInMcpServer @Inject constructor(
      */
     fun getServerInfo(): Map<String, Any> {
         return mapOf(
-            "name" to "VerText MCP Server",
+            "name" to "Vertext MCP Server",
             "version" to "1.0.0",
             "url" to BUILTIN_SERVER_URL,
             "tools" to tools.keys.toList(),
