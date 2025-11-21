@@ -7,6 +7,49 @@ This document tracks completed tasks, implementation decisions, and challenges e
 
 ## Progress Log
 
+### [2025-11-20 18:20] - Contact Name Display Fix for Group Conversations
+- **Task**: Display contact names instead of phone numbers in group conversations
+- **Problem**: User reported: "It's showing the phone numbers instead of contact names, even if contact names exist"
+- **Root Cause**: Group display names were generated directly from phone numbers without looking up contact names
+- **Implemented**:
+  - Added getContactNameForPhone(): Looks up contact names from Android's Contacts Provider
+    - Queries ContactsContract.PhoneLookup.CONTENT_FILTER_URI
+    - Extracts DISPLAY_NAME from contacts database
+    - Falls back to phone number if no contact found
+  - Updated enhanceThreadsWithGroupInfo() to use real-time contact lookups
+    - Maps each phone number to contact name before generating display name
+    - Applied to both group conversations and single-recipient MMS
+    - No longer requires app's contact database to be synced first
+
+- **Files Modified**:
+  - SmsProviderService.kt: Added contact lookup (+54/-6)
+    - Import ContactsContract for phone lookup
+    - New getContactNameForPhone() helper method
+    - Enhanced group name generation with contact lookups
+
+- **Technical Details**:
+  - Uses ContactsContract.PhoneLookup for efficient name resolution
+  - Synchronous lookup (no suspend needed)
+  - Works immediately on first sync without waiting for contact sync
+  - Display name format: "Contact1, Contact2, Contact3 +N" for groups >3
+
+- **Testing**:
+  - Verified with 7 group conversations showing contact names:
+    - Thread 6: [Baby, +12814144395] ✓
+    - Thread 66: [David Glover, +12814144395] ✓
+    - Thread 61: [Jennifer Glover, +12814144395] ✓
+    - Thread 129: [Vane Mama, +12814144395] ✓
+    - Thread 11: [Dr Godsy Refill, +12814144395] ✓
+  - Phone numbers shown only when no contact exists
+  - User's "Baby and Melinda Glover" group now displays properly
+
+- **Decisions Made**:
+  - Query Android Contacts directly instead of app's contact database
+  - Avoids dependency on contact sync running first
+  - Real-time lookup ensures names are always current
+
+- **Commit**: baed261 - [Fix] Display contact names instead of phone numbers in group conversations
+
 ### [2025-11-20 18:15] - MMS Support for Group Message Sync
 - **Task**: Fix group message sync to detect and import MMS group conversations
 - **Problem**: User reported: "I still don't see my messages which contain multiple recipients. For example, I have a group with Baby and Melinda Glover."
