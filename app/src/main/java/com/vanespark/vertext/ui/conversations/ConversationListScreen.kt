@@ -12,6 +12,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
@@ -29,12 +31,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -66,6 +71,7 @@ fun ConversationListScreen(
     val aiAssistantUiState by aiAssistantViewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     // Show error snackbar
     LaunchedEffect(uiState.error) {
@@ -86,6 +92,7 @@ fun ConversationListScreen(
                 onMenuClick = onMenuClick,
                 onSearchClick = onSearchClick,
                 onCancelSelection = { viewModel.clearSelection() },
+                onDeleteSelected = { showDeleteDialog = true },
                 scrollBehavior = scrollBehavior
             )
         },
@@ -127,7 +134,14 @@ fun ConversationListScreen(
     ) { paddingValues ->
         ConversationListContent(
             uiState = uiState,
-            onConversationClick = onConversationClick,
+            onConversationClick = { threadId ->
+                // In selection mode, toggle selection. Otherwise, open conversation
+                if (uiState.isSelectionMode) {
+                    viewModel.toggleConversationSelection(threadId)
+                } else {
+                    onConversationClick(threadId)
+                }
+            },
             onConversationLongClick = { viewModel.toggleConversationSelection(it) },
             onArchiveConversation = { viewModel.archiveConversation(it) },
             onDeleteConversation = { viewModel.deleteConversation(it) },
@@ -144,6 +158,18 @@ fun ConversationListScreen(
             onUpdateInput = { aiAssistantViewModel.updateInputText(it) },
             onClearHistory = { aiAssistantViewModel.clearHistory() }
         )
+
+        // Delete confirmation dialog
+        if (showDeleteDialog) {
+            DeleteSelectedDialog(
+                selectedCount = uiState.selectedConversations.size,
+                onDismiss = { showDeleteDialog = false },
+                onConfirm = {
+                    viewModel.deleteSelected()
+                    showDeleteDialog = false
+                }
+            )
+        }
     }
 }
 
@@ -157,6 +183,7 @@ private fun ConversationListTopBar(
     onMenuClick: () -> Unit,
     onSearchClick: () -> Unit,
     onCancelSelection: () -> Unit,
+    onDeleteSelected: () -> Unit,
     scrollBehavior: androidx.compose.material3.TopAppBarScrollBehavior,
     modifier: Modifier = Modifier
 ) {
@@ -175,7 +202,7 @@ private fun ConversationListTopBar(
             IconButton(onClick = if (isSelectionMode) onCancelSelection else onMenuClick) {
                 Icon(
                     imageVector = if (isSelectionMode) {
-                        Icons.Default.MoreVert // TODO: Use Close icon
+                        Icons.Default.Close
                     } else {
                         Icons.Default.Menu
                     },
@@ -188,7 +215,18 @@ private fun ConversationListTopBar(
             }
         },
         actions = {
-            if (!isSelectionMode) {
+            if (isSelectionMode) {
+                // Delete button when in selection mode
+                IconButton(
+                    onClick = onDeleteSelected,
+                    enabled = selectedCount > 0
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete selected"
+                    )
+                }
+            } else {
                 IconButton(onClick = onSearchClick) {
                     Icon(
                         imageVector = Icons.Default.Search,
@@ -370,4 +408,58 @@ private fun CategoryFilterChips(
             )
         }
     }
+}
+
+/**
+ * Delete confirmation dialog for selected conversations
+ */
+@Composable
+private fun DeleteSelectedDialog(
+    selectedCount: Int,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error
+            )
+        },
+        title = {
+            Text(
+                text = if (selectedCount == 1) {
+                    "Delete conversation?"
+                } else {
+                    "Delete $selectedCount conversations?"
+                }
+            )
+        },
+        text = {
+            Text(
+                text = if (selectedCount == 1) {
+                    "This conversation will be permanently deleted. This action cannot be undone."
+                } else {
+                    "These $selectedCount conversations will be permanently deleted. This action cannot be undone."
+                }
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text("Delete")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
