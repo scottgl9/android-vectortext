@@ -122,7 +122,8 @@ class SmsProviderService @Inject constructor(
             "thread_id",
             "date",
             "read",
-            "sub"
+            "sub",
+            "msg_box"  // Message box type: 1=inbox, 2=sent, 3=draft, 4=outbox
         )
 
         val sortOrder = "date DESC${if (limit != null) " LIMIT $limit" else ""}"
@@ -140,6 +141,7 @@ class SmsProviderService @Inject constructor(
                 val dateIndex = cursor.getColumnIndex("date")
                 val readIndex = cursor.getColumnIndex("read")
                 val subIndex = cursor.getColumnIndex("sub")
+                val msgBoxIndex = cursor.getColumnIndex("msg_box")
 
                 while (cursor.moveToNext()) {
                     val mmsId = if (idIndex >= 0) cursor.getLong(idIndex) else continue
@@ -147,6 +149,7 @@ class SmsProviderService @Inject constructor(
                     val date = if (dateIndex >= 0) cursor.getLong(dateIndex) * 1000 else 0L // Convert to milliseconds
                     val isRead = if (readIndex >= 0) cursor.getInt(readIndex) == 1 else false
                     val subject = if (subIndex >= 0) cursor.getString(subIndex) else null
+                    val msgBox = if (msgBoxIndex >= 0) cursor.getInt(msgBoxIndex) else 1
 
                     // Get MMS body text
                     val body = getMmsBody(mmsId) ?: continue
@@ -156,6 +159,16 @@ class SmsProviderService @Inject constructor(
                     // Use the first recipient as the address (could be sender or recipient)
                     val address = recipients.firstOrNull() ?: "Unknown"
 
+                    // Map msg_box to message type
+                    // msg_box: 1=inbox, 2=sent, 3=draft, 4=outbox
+                    // Message.TYPE: 1=inbox, 2=sent, 3=draft, 4=outbox, 5=failed
+                    val messageType = when (msgBox) {
+                        2 -> 2  // Sent
+                        3 -> 3  // Draft
+                        4 -> 3  // Outbox -> treat as draft
+                        else -> 1  // Inbox (default)
+                    }
+
                     messages.add(
                         Message(
                             id = mmsId,
@@ -163,7 +176,7 @@ class SmsProviderService @Inject constructor(
                             address = address,
                             body = body,
                             date = date,
-                            type = 1, // MMS messages are typically type 1 (inbox)
+                            type = messageType,
                             isRead = isRead,
                             subject = subject
                         )
