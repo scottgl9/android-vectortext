@@ -57,7 +57,21 @@ data class Thread(
 
     /** Total number of messages in thread */
     @ColumnInfo(name = "message_count")
-    val messageCount: Int = 0
+    val messageCount: Int = 0,
+
+    /** True if this is a group conversation */
+    @ColumnInfo(name = "is_group")
+    val isGroup: Boolean = false,
+
+    /** Custom name for group conversations */
+    @ColumnInfo(name = "group_name")
+    val groupName: String? = null,
+
+    /**
+     * For group conversations: JSON array of recipient phone numbers
+     * Example: ["[\"555-1234\",\"555-5678\",\"555-9012\"]"]
+     */
+    val recipients: String? = null
 ) {
     /** Helper to check if thread has unread messages */
     val hasUnread: Boolean
@@ -66,4 +80,34 @@ data class Thread(
     /** Get category as enum */
     val categoryEnum: ThreadCategory
         get() = ThreadCategory.fromString(category)
+
+    /** Parse recipients list from JSON */
+    fun getRecipientsList(): List<String> {
+        if (recipients == null || !isGroup) return listOf(recipient)
+        return try {
+            // Parse JSON array of recipients
+            recipients.trim()
+                .removeSurrounding("[", "]")
+                .split(",")
+                .map { it.trim().removeSurrounding("\"") }
+                .filter { it.isNotBlank() }
+        } catch (e: Exception) {
+            listOf(recipient)
+        }
+    }
+
+    /** Display name for the conversation */
+    val displayName: String
+        get() = when {
+            isGroup && !groupName.isNullOrBlank() -> groupName
+            isGroup -> {
+                val recipientsList = getRecipientsList()
+                when {
+                    recipientsList.size <= 3 -> recipientsList.joinToString(", ")
+                    else -> "${recipientsList.take(3).joinToString(", ")} +${recipientsList.size - 3}"
+                }
+            }
+            !recipientName.isNullOrBlank() -> recipientName
+            else -> recipient
+        }
 }
