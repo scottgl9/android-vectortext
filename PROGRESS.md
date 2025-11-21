@@ -7,6 +7,144 @@ This document tracks completed tasks, implementation decisions, and challenges e
 
 ## Progress Log
 
+### [2025-11-21 01:15] - Multi-Select Enhancements: Archive, Mark as Read, Select All
+- **Task**: Implement future enhancements for multi-select mode
+- **Context**: Basic multi-select delete complete, now adding advanced batch actions
+- **User Request**: "Continue with future enhancements"
+
+- **Selection Mode Action Bar** (4 buttons + overflow menu):
+  - **📦 Archive Button** (ConversationListTopBar:237-245):
+    - Archives all selected conversations at once
+    - Uses existing `viewModel.archiveSelected()` method
+    - Disabled when no conversations selected
+    - Icon: `Icons.Default.Archive`
+
+  - **✅ Mark as Read Button** (ConversationListTopBar:248-256):
+    - Marks all selected conversations as read
+    - Clears unread badges and counts
+    - Uses existing `viewModel.markSelectedAsRead()` method
+    - Disabled when no conversations selected
+    - Icon: `Icons.Default.CheckCircle`
+
+  - **🗑️ Delete Button** (ConversationListTopBar:259-267):
+    - Opens confirmation dialog (already existed)
+    - Permanently deletes all selected conversations
+    - Disabled when no conversations selected
+    - Icon: `Icons.Default.Delete`
+
+  - **⋮ More Options Menu** (ConversationListTopBar:270-311):
+    - Opens dropdown with Select All/Deselect All
+    - Icon: `Icons.Default.MoreVert`
+    - Smart menu items shown based on context
+
+- **Overflow Menu Options**:
+  - **Select All** (lines 281-295):
+    - Only shown when `selectedCount < totalCount`
+    - Selects all conversations in current list
+    - Respects category filter (only selects visible conversations)
+    - Icon: `Icons.Default.SelectAll`
+    - Automatically enters selection mode if not already active
+
+  - **Deselect All** (lines 296-310):
+    - Only shown when `selectedCount > 0`
+    - Clears all selections
+    - Exits selection mode
+    - Returns to normal conversation list view
+    - Icon: `Icons.Default.Close`
+
+- **ViewModel Enhancement**:
+  - **selectAll() Method** (ConversationListViewModel.kt:229-237):
+    ```kotlin
+    fun selectAll() {
+        _uiState.update { state ->
+            val allThreadIds = state.conversations.map { it.threadId }.toSet()
+            state.copy(
+                selectedConversations = allThreadIds,
+                isSelectionMode = true
+            )
+        }
+    }
+    ```
+    - Maps all visible conversation IDs to selection set
+    - Works with filtered conversations (category filter aware)
+    - Automatically activates selection mode
+    - Smart: Only selects conversations currently in the list
+
+- **Smart UI Behavior**:
+  - All action buttons disabled when no selections
+  - Dropdown menu closes automatically after selection
+  - Menu items conditionally shown (no unnecessary options)
+  - Select All hidden when all already selected
+  - Deselect All hidden when none selected
+
+- **Files Changed**:
+  - `ConversationListScreen.kt` (+90 lines, -1 line):
+    - Added imports: Archive, CheckCircle, SelectAll icons
+    - Added DropdownMenu and DropdownMenuItem imports
+    - Updated ConversationListTopBar signature with 4 new callbacks
+    - Added showMoreMenu state variable
+    - Added 4 IconButtons in actions section
+    - Added conditional DropdownMenu with 2 menu items
+
+  - `ConversationListViewModel.kt` (+13 lines):
+    - Added selectAll() method with smart selection logic
+    - Works with existing state management
+
+- **User Experience Flow Examples**:
+
+  **Archive Multiple Spam:**
+  1. Long-press spam conversation
+  2. Tap more spam conversations
+  3. Tap Archive button
+  4. All selected conversations archived instantly
+  5. Selection mode exits, clean inbox remains
+
+  **Mark All Notifications as Read:**
+  1. Enter selection mode
+  2. Tap ⋮ More Options
+  3. Tap "Select all"
+  4. All conversations selected
+  5. Tap ✅ Mark as Read button
+  6. All unread badges cleared
+  7. Unread count drops to zero
+
+  **Delete Everything from Specific Sender:**
+  1. Filter to "Promotions" category
+  2. Long-press one conversation
+  3. Tap ⋮ More → "Select all"
+  4. Only promotion conversations selected
+  5. Tap 🗑️ Delete
+  6. Confirm deletion
+  7. All promotions deleted
+
+- **Build Status**: ✅ Successful
+  - All tests passing (54/54)
+  - No errors or warnings
+  - Clean compilation
+
+- **Benefits**:
+  - **Efficiency**: Batch operations save significant time
+  - **Flexibility**: Multiple actions available (not just delete)
+  - **Smart Selection**: Select all respects filters and categories
+  - **Clean UI**: Overflow menu keeps action bar uncluttered
+  - **Professional**: Standard Android patterns (Gmail, Files, Photos)
+
+- **Technical Highlights**:
+  - Leveraged 3 existing ViewModel methods (archiveSelected, markSelectedAsRead, deleteSelected)
+  - Only needed to add selectAll() method
+  - Smart conditional rendering of menu items
+  - Material 3 DropdownMenu component
+  - State-driven UI updates
+
+- **Future Possibilities** (not implemented):
+  - Pin selected conversations
+  - Mute selected conversations
+  - Move selected to category
+  - Export selected conversations
+  - Share selected conversations
+
+---
+
 ### [2025-11-21 00:30] - Multi-Select Conversations for Batch Deletion
 - **Task**: Implement long-press multi-selection to delete multiple conversations
 - **Context**: Users requested ability to select and delete multiple conversations at once
