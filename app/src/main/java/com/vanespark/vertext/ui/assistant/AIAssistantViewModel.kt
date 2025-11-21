@@ -76,6 +76,14 @@ class AIAssistantViewModel @Inject constructor(
                             isInitializing = false
                         )}
                     }
+                    GeminiNanoStatus.SDK_NOT_FOUND -> {
+                        Timber.d("Gemini Nano SDK not found (older Android?) - using fallback")
+                        isGeminiNanoAvailable = false
+                        _uiState.update { it.copy(
+                            backendMode = AIBackendMode.FALLBACK,
+                            isInitializing = false
+                        )}
+                    }
                     else -> {
                         Timber.d("Gemini Nano status unknown: $status")
                         isGeminiNanoAvailable = false

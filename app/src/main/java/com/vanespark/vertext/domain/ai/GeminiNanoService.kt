@@ -21,6 +21,7 @@ enum class GeminiNanoStatus {
     UNKNOWN,            // Not yet checked
     AVAILABLE,          // Ready to use immediately
     NOT_AVAILABLE,      // Device doesn't support it
+    SDK_NOT_FOUND,      // AI Edge SDK not available (older Android)
     ERROR              // Error occurred
 }
 
@@ -52,7 +53,8 @@ class GeminiNanoService @Inject constructor(
      * Check if Gemini Nano is available on this device
      *
      * Note: The AI Edge SDK (experimental) doesn't provide explicit availability checking.
-     * We try to initialize and catch exceptions.
+     * We try to initialize and catch exceptions. On older Android versions or devices
+     * without AICore, this will gracefully return SDK_NOT_FOUND or NOT_AVAILABLE.
      */
     suspend fun checkAvailability(): GeminiNanoStatus = withContext(Dispatchers.IO) {
         try {
@@ -77,6 +79,18 @@ class GeminiNanoService @Inject constructor(
             Timber.w("Gemini Nano is NOT_AVAILABLE: ${e.message}")
             _status.value = GeminiNanoStatus.NOT_AVAILABLE
             GeminiNanoStatus.NOT_AVAILABLE
+
+        } catch (e: NoClassDefFoundError) {
+            // AI Edge SDK classes not available (older Android or missing dependency)
+            Timber.w("Gemini Nano SDK not found: ${e.message}")
+            _status.value = GeminiNanoStatus.SDK_NOT_FOUND
+            GeminiNanoStatus.SDK_NOT_FOUND
+
+        } catch (e: ClassNotFoundException) {
+            // AI Edge SDK classes not available
+            Timber.w("Gemini Nano SDK class not found: ${e.message}")
+            _status.value = GeminiNanoStatus.SDK_NOT_FOUND
+            GeminiNanoStatus.SDK_NOT_FOUND
 
         } catch (e: Exception) {
             Timber.e(e, "Error checking Gemini Nano availability")
