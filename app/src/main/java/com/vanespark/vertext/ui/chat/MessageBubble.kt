@@ -121,7 +121,7 @@ fun MessageBubble(
         if (message.isIncoming && message.isFirstInGroup && message.displayName.isNotBlank()) {
             Text(
                 text = message.displayName,
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.bodyMedium,
                 color = bubbleColor, // Match the bubble color for visual association
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(start = 16.dp, bottom = 2.dp)
