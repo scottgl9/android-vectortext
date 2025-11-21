@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.abs
 
 /**
  * Message bubble component
@@ -45,13 +46,22 @@ fun MessageBubble(
 ) {
     // Determine bubble alignment and color
     val alignment = if (message.isIncoming) Alignment.CenterStart else Alignment.CenterEnd
+
+    // For incoming messages, use sender-specific colors (for group distinction)
+    // For outgoing messages, use the standard primary container
     val bubbleColor = if (message.isIncoming) {
-        MaterialTheme.colorScheme.surfaceVariant
+        // Check if this looks like a group message (displayName is not the address)
+        if (message.displayName != message.address) {
+            getSenderColor(message.displayName)
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant
+        }
     } else {
         MaterialTheme.colorScheme.primaryContainer
     }
+
     val textColor = if (message.isIncoming) {
-        MaterialTheme.colorScheme.onSurfaceVariant
+        Color.White // Use white text for colored bubbles
     } else {
         MaterialTheme.colorScheme.onPrimaryContainer
     }
@@ -102,6 +112,16 @@ fun MessageBubble(
         if (message.formattedDate.isNotEmpty() && message.isFirstInGroup) {
             DateDivider(date = message.formattedDate)
             Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        // Sender name for incoming group messages
+        if (message.isIncoming && message.isFirstInGroup && message.displayName != message.address) {
+            Text(
+                text = message.displayName,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
+            )
         }
 
         // Message bubble
@@ -211,4 +231,30 @@ private fun DateDivider(
             )
         }
     }
+}
+
+/**
+ * Generate a consistent color for a sender based on their name
+ * Uses a predefined palette of colors to ensure good contrast and readability
+ */
+private fun getSenderColor(senderName: String): Color {
+    // Material Design-inspired color palette for group messages
+    val colors = listOf(
+        Color(0xFF1976D2), // Blue 700
+        Color(0xFF388E3C), // Green 700
+        Color(0xFFD32F2F), // Red 700
+        Color(0xFF7B1FA2), // Purple 700
+        Color(0xFFF57C00), // Orange 700
+        Color(0xFF0097A7), // Cyan 700
+        Color(0xFFC2185B), // Pink 700
+        Color(0xFF5D4037), // Brown 700
+        Color(0xFF455A64), // Blue Grey 700
+        Color(0xFF00796B)  // Teal 700
+    )
+
+    // Generate a consistent index based on the sender name hash
+    val hash = abs(senderName.hashCode())
+    val colorIndex = hash % colors.size
+
+    return colors[colorIndex]
 }

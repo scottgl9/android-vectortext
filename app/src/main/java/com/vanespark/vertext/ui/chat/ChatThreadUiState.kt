@@ -122,13 +122,17 @@ data class MessageUiItem(
                 val next = messages.getOrNull(i + 1)
 
                 // Check if first in group
+                // Messages should be grouped only if they're from the same sender (address)
+                // and within the time threshold
                 val isFirstInGroup = previous == null ||
                         previous.isIncoming != current.isIncoming ||
+                        previous.address != current.address ||
                         (current.timestamp - previous.timestamp) > groupTimeThreshold
 
                 // Check if last in group
                 val isLastInGroup = next == null ||
                         next.isIncoming != current.isIncoming ||
+                        next.address != current.address ||
                         (next.timestamp - current.timestamp) > groupTimeThreshold
 
                 grouped.add(

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vanespark.vertext.data.model.Message
 import com.vanespark.vertext.data.model.Thread
+import com.vanespark.vertext.data.repository.ContactRepository
 import com.vanespark.vertext.data.repository.MessageRepository
 import com.vanespark.vertext.data.repository.ThreadRepository
 import com.vanespark.vertext.domain.service.MessagingService
@@ -25,6 +26,7 @@ import timber.log.Timber
 class ChatThreadViewModel @AssistedInject constructor(
     private val messageRepository: MessageRepository,
     private val threadRepository: ThreadRepository,
+    private val contactRepository: ContactRepository,
     private val messagingService: MessagingService,
     @Assisted private val threadId: Long
 ) : ViewModel() {
@@ -75,11 +77,30 @@ class ChatThreadViewModel @AssistedInject constructor(
                     }
                 }
                 .collect { messages: List<Message> ->
-                    // Convert to UI items and group
+                    val thread = _uiState.value.thread
+                    val isGroupConversation = thread?.isGroup == true
+
+                    // Convert to UI items
                     val messageUiItems = messages.map { message ->
+                        val displayName = when {
+                            // For group conversations, show individual sender names
+                            isGroupConversation -> {
+                                if (message.type == 2) {
+                                    // Outgoing message from user
+                                    "You"
+                                } else {
+                                    // Incoming message - look up contact name
+                                    val contact = contactRepository.getContactByPhone(message.address)
+                                    contact?.name ?: message.address
+                                }
+                            }
+                            // For 1-on-1 conversations, use thread recipient name
+                            else -> thread?.recipientName ?: message.address
+                        }
+
                         MessageUiItem.fromMessage(
                             message = message,
-                            displayName = _uiState.value.thread?.recipientName ?: message.address
+                            displayName = displayName
                         )
                     }
 
@@ -91,6 +112,10 @@ class ChatThreadViewModel @AssistedInject constructor(
                             isLoading = false,
                             error = null
                         )
+                    }
+
+                    if (isGroupConversation) {
+                        Timber.d("Loaded ${messages.size} messages for group conversation")
                     }
                 }
         }
