@@ -131,15 +131,11 @@ class ChatThreadViewModel @AssistedInject constructor(
                 val thread = _uiState.value.thread
                 val isGroupConversation = thread?.isGroup == true
 
-                // Filter out reaction messages that haven't been processed yet
-                // Google Messages format: "<emoji> <verb> '<quoted text>'"
-                val googleReactionPattern = Regex("^(.+?)\\s+(Liked|Disliked|Loved|Laughed at|Emphasized|Questioned|Reacted to)\\s+'.+'$")
-                val displayMessages = messages.filter { message ->
-                    !googleReactionPattern.matches(message.body.trim())
-                }
+                // DISABLED: Reaction filtering removed - showing all text messages
+                // Reaction feature is currently disabled (not working reliably)
 
                 // Convert to UI items with cached contact name lookups
-                val messageUiItems = displayMessages.map { message ->
+                val messageUiItems = messages.map { message ->
                     val displayName = getDisplayName(message.address, isGroupConversation, message.type)
 
                     MessageUiItem.fromMessage(

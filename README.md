@@ -9,8 +9,9 @@ An intelligent, feature-rich SMS/MMS messaging application for Android with sema
 - **Rich Media Attachments** - Images, videos, and audio with full playback support
 - **MMS Subject Lines** - Proper display and formatting of MMS subjects
 - **Group Conversations** - Color-coded sender bubbles for easy identification
-- **Message Reactions** - React to messages with emoji reactions
 - **Read Receipts** - Track message delivery and read status
+
+> **Note**: Message reactions feature is currently disabled due to reliability issues with cross-device compatibility. All text messages are now displayed without filtering.
 
 ### 🎨 Media Playback
 - **Image Viewer** - Full-screen viewing with pinch-to-zoom (1x-5x) and pan gestures
@@ -109,11 +110,10 @@ An intelligent, feature-rich SMS/MMS messaging application for Android with sema
 - ✅ MMS subject display and proper formatting
 - ✅ All media formats supported with graceful fallbacks
 
-### Message Reactions (2025-11-20)
-- ✅ Emoji reaction system with sender attribution
-- ✅ Long-press to react to incoming messages
-- ✅ Reaction picker with 12 common emojis
-- ✅ Cross-device compatible reaction encoding
+### Message Reactions (2025-11-20) - **DISABLED**
+- ⚠️ **Currently Disabled** - Reaction feature disabled due to reliability issues
+- ⚠️ All text messages now display without filtering (including reaction-format texts)
+- ⚠️ May be re-enabled in future with improved implementation
 
 ### Performance Optimization (2025-11-20)
 - ✅ Configurable message load limit (10-10,000 messages)
