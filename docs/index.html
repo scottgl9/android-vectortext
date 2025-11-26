@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vertext - Smart Private Messaging</title>
+    <meta name="description" content="Vertext is a beautiful, privacy-focused SMS/MMS messaging app with AI-powered semantic search. Find any message using natural language.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6750A4;
+            --primary-light: #E8DEF8;
+            --on-primary: #FFFFFF;
+            --surface: #FFFBFE;
+            --surface-variant: #E7E0EC;
+            --on-surface: #1C1B1F;
+            --on-surface-variant: #49454F;
+            --outline: #79747E;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--surface);
+            color: var(--on-surface);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        header {
+            padding: 24px 0;
+            border-bottom: 1px solid var(--surface-variant);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--on-surface);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        nav a {
+            color: var(--on-surface-variant);
+            text-decoration: none;
+            margin-left: 32px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        nav a:hover {
+            color: var(--primary);
+        }
+
+        /* Hero */
+        .hero {
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 56px;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, var(--primary) 0%, #9747FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: var(--on-surface-variant);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--primary);
+            color: var(--on-primary);
+            padding: 16px 32px;
+            border-radius: 100px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(103, 80, 164, 0.3);
+        }
+
+        /* Features */
+        .features {
+            padding: 80px 0;
+            background: var(--surface-variant);
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 40px;
+            margin-bottom: 60px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+        }
+
+        .feature-card {
+            background: var(--surface);
+            padding: 32px;
+            border-radius: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--primary-light);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .feature-card p {
+            color: var(--on-surface-variant);
+            font-size: 15px;
+        }
+
+        /* Privacy Section */
+        .privacy-highlight {
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .privacy-highlight h2 {
+            font-size: 40px;
+            margin-bottom: 24px;
+        }
+
+        .privacy-highlight p {
+            font-size: 18px;
+            color: var(--on-surface-variant);
+            max-width: 700px;
+            margin: 0 auto 40px;
+        }
+
+        .privacy-badges {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface-variant);
+            padding: 12px 24px;
+            border-radius: 100px;
+            font-weight: 500;
+        }
+
+        /* Footer */
+        footer {
+            padding: 48px 0;
+            border-top: 1px solid var(--surface-variant);
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--on-surface-variant);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+
+        .copyright {
+            color: var(--outline);
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .hero p {
+                font-size: 16px;
+            }
+
+            .features h2,
+            .privacy-highlight h2 {
+                font-size: 28px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            nav a {
+                margin-left: 16px;
+            }
+
+            nav a:first-child {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo">
+                    <div class="logo-icon">V</div>
+                    <span class="logo-text">Vertext</span>
+                </a>
+                <nav>
+                    <a href="#features">Features</a>
+                    <a href="#privacy">Privacy</a>
+                    <a href="privacy-policy.html">Privacy Policy</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1>Smart Private Messaging</h1>
+                <p>A beautiful SMS/MMS app with AI-powered semantic search. Find any message using natural language. 100% private, on-device.</p>
+                <a href="https://play.google.com/store/apps/details?id=com.vanespark.vertext" class="cta-button">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.5,12.92 20.16,13.19L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z"/>
+                    </svg>
+                    Get it on Google Play
+                </a>
+            </div>
+        </section>
+
+        <section class="features" id="features">
+            <div class="container">
+                <h2>Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🔍</div>
+                        <h3>Semantic Search</h3>
+                        <p>Ask questions like "What was the gate code?" and find exactly what you're looking for. No more endless scrolling.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h3>100% Private</h3>
+                        <p>Everything runs on your device. No cloud. No data collection. No telemetry. Your messages stay yours.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">✨</div>
+                        <h3>Beautiful Design</h3>
+                        <p>Full Material You theming, smooth animations, and polished micro-interactions throughout.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">💬</div>
+                        <h3>Complete Messaging</h3>
+                        <p>Full SMS/MMS support, group messaging, media sharing, and all the features you expect.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🤖</div>
+                        <h3>On-Device AI</h3>
+                        <p>Smart features powered by on-device AI. Thread summaries, smart categories, and more.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Fast & Efficient</h3>
+                        <p>Lightweight and battery-friendly. Handles large message histories smoothly.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="privacy-highlight" id="privacy">
+            <div class="container">
+                <h2>Privacy First</h2>
+                <p>Vertext is built from the ground up with privacy in mind. All AI features run entirely on your device. We don't collect, store, or transmit any of your personal data.</p>
+                <div class="privacy-badges">
+                    <div class="badge">🚫 No Cloud</div>
+                    <div class="badge">🚫 No Tracking</div>
+                    <div class="badge">🚫 No Ads</div>
+                    <div class="badge">✅ Open Source</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="privacy-policy.html">Privacy Policy</a>
+                <a href="https://github.com/vanespark/vertext">GitHub</a>
+                <a href="mailto:support@vanespark.com">Contact</a>
+            </div>
+            <p class="copyright">&copy; 2025 Vanespark. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
