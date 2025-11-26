@@ -30,9 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
-import coil3.compose.SubcomposeAsyncImageContent
 import com.vanespark.vertext.R
 
 /**
@@ -124,25 +122,19 @@ private fun ZoomableImage(
                     translationX = offsetX,
                     translationY = offsetY
                 ),
-            contentScale = ContentScale.Fit
-        ) {
-            when (painter.state) {
-                is AsyncImagePainter.State.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = Color.White)
-                    }
+            contentScale = ContentScale.Fit,
+            loading = {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color.White)
                 }
-                is AsyncImagePainter.State.Error -> {
-                    // Image failed to load - dialog will just show black background
-                    Box(modifier = Modifier.fillMaxSize())
-                }
-                else -> {
-                    SubcomposeAsyncImageContent()
-                }
+            },
+            error = {
+                // Image failed to load - dialog will just show black background
+                Box(modifier = Modifier.fillMaxSize())
             }
-        }
+        )
     }
 }

@@ -24,7 +24,7 @@ fun EditContactDialog(
 
     val canSave = name.isNotBlank()
 
-    AlertDialog(
+    BasicAlertDialog(
         onDismissRequest = onDismiss,
         modifier = modifier.fillMaxWidth(0.95f)
     ) {

@@ -33,6 +33,7 @@ class SmsProviderService @Inject constructor(
 
     // Cache the user's phone number to avoid repeated lookups
     private val userPhoneNumber: String?
+        @Suppress("DEPRECATION") // line1Number deprecated in API 33, but still works for our use case
         @SuppressLint("MissingPermission") // Permission is handled by try-catch and app requires READ_SMS
         get() = try {
             val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager

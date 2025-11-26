@@ -39,7 +39,7 @@ fun RuleEditorDialog(
 
     val canSave = name.isNotBlank() && triggers.isNotEmpty() && actions.isNotEmpty()
 
-    AlertDialog(
+    BasicAlertDialog(
         onDismissRequest = onDismiss,
         modifier = modifier.fillMaxWidth(0.95f)
     ) {

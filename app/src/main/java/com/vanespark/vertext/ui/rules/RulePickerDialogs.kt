@@ -27,7 +27,7 @@ fun TriggerPickerDialog(
 ) {
     var selectedType by remember { mutableStateOf<TriggerType?>(null) }
 
-    AlertDialog(
+    BasicAlertDialog(
         onDismissRequest = onDismiss
     ) {
         Surface(
@@ -375,7 +375,7 @@ fun ConditionPickerDialog(
 ) {
     var selectedType by remember { mutableStateOf<ConditionType?>(null) }
 
-    AlertDialog(
+    BasicAlertDialog(
         onDismissRequest = onDismiss
     ) {
         Surface(
@@ -621,7 +621,7 @@ fun ActionPickerDialog(
 ) {
     var selectedType by remember { mutableStateOf<ActionType?>(null) }
 
-    AlertDialog(
+    BasicAlertDialog(
         onDismissRequest = onDismiss
     ) {
         Surface(
